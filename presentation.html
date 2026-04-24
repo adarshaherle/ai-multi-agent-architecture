@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GraphQL Python → Go Migration Agent — Architecture</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg-elev: #1e293b;
+    --bg-soft: #172033;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #64748b;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --amber: #fbbf24;
+    --green: #34d399;
+    --red: #f87171;
+    --cyan: #22d3ee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* Layout */
+  .container { display: grid; grid-template-columns: 260px 1fr; gap: 40px; max-width: 1400px; margin: 0 auto; }
+  nav.toc {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 40px 20px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    font-size: 14px;
+  }
+  nav.toc h4 {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+  nav.toc a {
+    display: block;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    margin-bottom: 2px;
+  }
+  nav.toc a:hover { color: var(--text); background: var(--bg-soft); }
+  nav.toc a.active { color: var(--blue); border-left-color: var(--blue); background: var(--bg-soft); }
+
+  article { padding: 60px 40px 120px; max-width: 900px; }
+
+  /* Typography */
+  h1 {
+    font-size: 2.6em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: var(--muted); font-size: 1.15em; margin-bottom: 40px; }
+
+  h2 {
+    font-size: 1.9em;
+    color: var(--text);
+    margin: 60px 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  h2 .num {
+    color: var(--dim);
+    font-weight: 400;
+    margin-right: 12px;
+  }
+  h3 { font-size: 1.3em; color: var(--blue); margin: 32px 0 12px; }
+  h4 { font-size: 1.05em; color: var(--purple); margin: 20px 0 8px; }
+
+  p { margin-bottom: 14px; color: var(--text); }
+  p.lead { font-size: 1.1em; color: #cbd5e1; }
+
+  strong { color: var(--amber); font-weight: 600; }
+  em { color: #cbd5e1; font-style: italic; }
+
+  ul, ol { margin: 12px 0 18px 24px; }
+  li { margin-bottom: 8px; }
+
+  a { color: var(--blue); }
+
+  /* Code */
+  code {
+    background: #0b1220;
+    color: #fde68a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 0.92em;
+  }
+  pre {
+    background: #0b1220;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    font-size: 0.88em;
+    line-height: 1.55;
+  }
+  pre code { background: none; color: #e2e8f0; padding: 0; }
+  .code-label {
+    display: inline-block;
+    background: var(--bg-elev);
+    color: var(--muted);
+    padding: 4px 12px;
+    font-size: 0.8em;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    font-family: monospace;
+  }
+  .code-label + pre { border-top-left-radius: 0; margin-top: 0; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    background: var(--bg-elev);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 0.95em;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { background: var(--bg-soft); color: var(--blue); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td code { font-size: 0.88em; }
+
+  /* Callouts / cards */
+  .callout {
+    background: var(--bg-elev);
+    border-left: 4px solid var(--blue);
+    border-radius: 6px;
+    padding: 14px 20px;
+    margin: 18px 0;
+  }
+  .callout.purple { border-left-color: var(--purple); }
+  .callout.amber { border-left-color: var(--amber); }
+  .callout.green { border-left-color: var(--green); }
+  .callout.red { border-left-color: var(--red); }
+  .callout p { margin-bottom: 6px; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* Phase boxes grid */
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .phase-box {
+    background: var(--bg-elev);
+    border-radius: 10px;
+    padding: 20px 24px;
+    border-top: 3px solid var(--blue);
+    position: relative;
+  }
+  .phase-box.p1 { border-top-color: var(--blue); }
+  .phase-box.p2 { border-top-color: var(--purple); }
+  .phase-box.p3 { border-top-color: var(--amber); }
+  .phase-box.p4 { border-top-color: var(--green); }
+  .phase-box.p5 { border-top-color: var(--red); }
+  .phase-box .tag {
+    display: inline-block;
+    font-size: 0.7em;
+    background: var(--bg-soft);
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .phase-box h3 { margin: 0 0 10px; font-size: 1.15em; }
+  .phase-box dl { font-size: 0.9em; }
+  .phase-box dt { color: var(--muted); font-weight: 600; margin-top: 8px; }
+  .phase-box dd { color: #cbd5e1; margin-left: 0; }
+
+  /* Canvas */
+  .diagram {
+    background: var(--bg-elev);
+    border-radius: 10px;
+    padding: 16px;
+    margin: 24px 0;
+    border: 1px solid var(--border);
+  }
+  .diagram canvas { display: block; max-width: 100%; height: auto; }
+  .diagram .caption {
+    color: var(--muted);
+    font-size: 0.88em;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* Mini decorative header bar for agentic loop */
+  .loop-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 600;
+    margin-right: 6px;
+    letter-spacing: 0.5px;
+  }
+  .loop-badge.l1 { background: #064e3b; color: var(--green); }
+  .loop-badge.l2 { background: #312e81; color: var(--purple); }
+  .loop-badge.l3 { background: #450a0a; color: var(--red); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    nav.toc { display: none; }
+    article { padding: 30px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<nav class="toc">
+  <h4>Contents</h4>
+  <a href="#overview">1. Architecture Overview</a>
+  <a href="#workflow">2. End-to-End Workflow</a>
+  <a href="#agents">3. Agent Interaction Model</a>
+  <a href="#loops">4. Agentic Loops</a>
+  <a href="#mcp">5. MCP Server</a>
+  <a href="#finetune">6. Fine-Tuned Model</a>
+  <a href="#deployment">7. Deployment</a>
+  <a href="#state">8. State &amp; Memory</a>
+  <a href="#decisions">9. Design Decisions</a>
+  <a href="#rbac">10. RBAC &amp; Least Privilege</a>
+  <a href="#observability">11. Observability</a>
+  <a href="#cost">12. Cost Controls</a>
+  <a href="#hitl">13. Human-in-the-Loop</a>
+</nav>
+
+<article>
+
+<header>
+  <h1>GraphQL Python → Go Migration Agent</h1>
+  <p class="subtitle">A hybrid Kubernetes + Postgres pipeline where each migration runs as an isolated K8s Job Pod, orchestrated by Claude via the Agent SDK.</p>
+</header>
+
+<!-- =========================================================== -->
+<section id="overview">
+<h2><span class="num">1.</span>Architecture Overview</h2>
+
+<p class="lead">Each migration is a <strong>single Kubernetes Job Pod</strong>. Kubernetes handles execution, scheduling, isolation, and retries. A thin Postgres ledger retains historical data for dashboards and analytics. Claude, via the Agent SDK, is the reasoning engine at every phase.</p>
+
+<h3>Core design principles</h3>
+<ul>
+  <li><strong>One K8s Job per migration</strong> — Pod-level isolation across filesystem, process, network, and credentials.</li>
+  <li><strong>Pipeline of focused agent phases</strong> running sequentially in a single Pod — enables checkpointing, observability, and phase-specific tool access.</li>
+  <li><strong>Shared context via files</strong> on the Pod's ephemeral volume — agents read previous phases' outputs, not serialized blobs between API calls.</li>
+  <li><strong>K8s API = source of truth</strong> for active jobs; <strong>Postgres = historical ledger</strong> written on completion.</li>
+  <li><strong>Least-privilege identity per Pod</strong> via K8s ServiceAccounts and RBAC.</li>
+  <li><strong>Shared MCP server</strong> provides RAG context for code generation and structured validation — agents call it like any other tool.</li>
+</ul>
+
+<div class="diagram">
+  <canvas id="overviewCanvas" width="840" height="520"></canvas>
+  <div class="caption">Figure 1 — Cluster-level architecture: Controller creates Jobs, Jobs talk to MCP, results land in Postgres.</div>
+</div>
+
+<div class="diagram">
+  <canvas id="podCanvas" width="840" height="520"></canvas>
+  <div class="caption">Figure 2 — Inside a Migration Pod: initContainer clones the repo, main container runs the five agent phases.</div>
+</div>
+</section>
+
+<!-- =========================================================== -->
+<section id="workflow">
+<h2><span class="num">2.</span>End-to-End Workflow</h2>
+
+<p class="lead">From a developer's <code>migrate</code> command to an open PR, in six steps.</p>
+
+<div class="diagram">
+  <canvas id="flowCanvas" width="840" height="720"></canvas>
+  <div class="caption">Figure 3 — Developer → PR flowchart, showing the six-step lifecycle.</div>
+</div>
+
+<ol>
+  <li><strong>Trigger</strong> — Developer runs <code>migrate --target payments/resolve_invoice.py</code> or submits via a dashboard. The request hits the Migration Controller's REST API.</li>
+  <li><strong>Create K8s Job</strong> — Controller validates the target, creates a Job manifest with config and credential references, and submits it to the cluster. An initial <code>PENDING</code> record is written to Postgres.</li>
+  <li><strong>Provision (initContainer)</strong> — K8s schedules the Pod. An <code>initContainer</code> clones the monorepo into an <code>emptyDir</code> volume at <code>/workspace</code> and checks out a new branch: <code>migrate/payments-resolve-invoice-&lt;short-id&gt;</code>.</li>
+  <li><strong>Execute pipeline</strong> — The main container runs the five phases sequentially. Each writes output to <code>/workspace/.migration/</code>, and updates the Job's annotations for live observability.</li>
+  <li><strong>Produce PR</strong> — The Publish phase commits, pushes the branch, and opens a PR. The PR URL is written to Job annotations.</li>
+  <li><strong>Notify</strong> — Controller watches for Job completion, writes terminal state to Postgres (status, PR URL, phase logs), and notifies via Slack or GitHub. On failure, the developer gets the phase that failed and why.</li>
+</ol>
+
+<div class="callout amber">
+  <p><strong>Retry semantics.</strong> Phases are idempotent. If validation fails, the agent-runner retries Generate → Validate up to 2 times internally (with the validation error fed back as context). If the entire Pod crashes, the K8s Job's <code>backoffLimit</code> controls Pod-level retries. Exhausted jobs are labeled <code>needs-review</code> for manual triage.</p>
+</div>
+</section>
+
+<!-- =========================================================== -->
+<section id="agents">
+<h2><span class="num">3.</span>Agent Interaction Model</h2>
+
+<p class="lead">Five agent phases. Each is a separate Agent SDK invocation with its own system prompt, tool set, and success criteria. They share state through files in the Pod's <code>/workspace/.migration/</code> directory.</p>
+
+<div class="phase-grid">
+
+  <div class="phase-box p1">
+    <span class="tag">Phase 1</span>
+    <h3>Analyze</h3>
+    <dl>
+      <dt>Purpose</dt>
+      <dd>Understand the Python source, its GraphQL schema dependencies, existing Go patterns, and migration boundary.</dd>
+      <dt>Inputs</dt>
+      <dd>Target file path(s), monorepo root.</dd>
+      <dt>Tools</dt>
+      <dd><code>file_read</code>, <code>grep</code>, <code>glob</code>, MCP: <code>search_schemas</code>, <code>get_resolver</code>, <code>get_type_graph</code>.</dd>
+      <dt>Output</dt>
+      <dd><code>.migration/context.md</code> — structured analysis: types, resolvers, DB queries, external calls, edge cases.</dd>
+      <dt>Success</dt>
+      <dd>Context file covers all public entry points.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p2">
+    <span class="tag">Phase 2</span>
+    <h3>Plan</h3>
+    <dl>
+      <dt>Purpose</dt>
+      <dd>Produce a concrete migration plan: which Go files to create, how to map Python patterns to Go idioms, what tests to write.</dd>
+      <dt>Inputs</dt>
+      <dd><code>.migration/context.md</code>, repo Go conventions.</dd>
+      <dt>Tools</dt>
+      <dd><code>file_read</code>, MCP: <code>find_go_patterns</code>, <code>find_similar_migrations</code>.</dd>
+      <dt>Output</dt>
+      <dd><code>.migration/plan.md</code> — file-by-file plan with type mappings, function signatures, test strategy.</dd>
+      <dt>Success</dt>
+      <dd>Plan covers every item in analysis; no ambiguities.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p3">
+    <span class="tag">Phase 3</span>
+    <h3>Generate</h3>
+    <dl>
+      <dt>Purpose</dt>
+      <dd>Write the Go code, tests, and schema/config changes.</dd>
+      <dt>Inputs</dt>
+      <dd><code>.migration/context.md</code>, <code>.migration/plan.md</code>.</dd>
+      <dt>Tools</dt>
+      <dd><code>file_read</code>, <code>file_write</code>, <code>file_edit</code>, MCP: <code>find_go_patterns</code>, <code>search_schemas</code>, <code>generate_go_code</code>.</dd>
+      <dt>Output</dt>
+      <dd>Go source files, test files, updated schema registrations.</dd>
+      <dt>Success</dt>
+      <dd>All planned files are created; code compiles.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p4">
+    <span class="tag">Phase 4</span>
+    <h3>Validate</h3>
+    <dl>
+      <dt>Purpose</dt>
+      <dd>Build, lint, test the generated code. Fix issues when possible.</dd>
+      <dt>Inputs</dt>
+      <dd>Worktree with generated code, <code>.migration/context.md</code>.</dd>
+      <dt>Tools</dt>
+      <dd><code>bash</code>, <code>file_read</code>, <code>file_edit</code>, MCP: <code>validate_build</code>, <code>validate_schemas</code>, <code>run_tap</code>, <code>compare_implementations</code>.</dd>
+      <dt>Output</dt>
+      <dd><code>.migration/validation.md</code> — build output, tests, lint, schema compatibility, behavioral comparison.</dd>
+      <dt>Success</dt>
+      <dd>Build + tests + lint pass, schemas match, behavior matches Python. Up to 2 self-repair cycles.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p5">
+    <span class="tag">Phase 5</span>
+    <h3>Publish</h3>
+    <dl>
+      <dt>Purpose</dt>
+      <dd>Commit, push, open PR, post summary.</dd>
+      <dt>Inputs</dt>
+      <dd>Worktree with passing code, <code>.migration/*.md</code> files.</dd>
+      <dt>Tools</dt>
+      <dd><code>git</code>, GitHub CLI.</dd>
+      <dt>Output</dt>
+      <dd>PR URL.</dd>
+      <dt>Success</dt>
+      <dd>PR is open, description populated, CI triggered.</dd>
+    </dl>
+  </div>
+
+</div>
+
+<h3>Why these boundaries?</h3>
+<ul>
+  <li><strong>Analyze and Plan are separated from Generate</strong> — the agent reasons about <em>what</em> to do before writing code. Planning catches issues that would otherwise become validation failures.</li>
+  <li><strong>Validate is separate from Generate</strong> — it acts as an adversarial check. A fresh validator agent doesn't have sunk-cost bias toward the generated code.</li>
+  <li><strong>Publish is separate</strong> — it's the only phase with side effects outside the worktree (push, PR creation). Isolating it makes dry-run mode trivial.</li>
+</ul>
+</section>
+
+<!-- =========================================================== -->
+<section id="loops">
+<h2><span class="num">4.</span>Agentic Loops &amp; Self-Correction</h2>
+
+<p class="lead">Three distinct loops, nested inside each other. Understanding where each lives — and what controls it — is key to understanding how the system self-corrects.</p>
+
+<div class="diagram">
+  <canvas id="loopCanvas" width="840" height="560"></canvas>
+  <div class="caption">Figure 4 — Three nested loops. The Agent SDK owns Level 1; the orchestrator owns Levels 2 and 3.</div>
+</div>
+
+<h3><span class="loop-badge l1">LEVEL 1</span>Agent SDK Tool Loop (every phase)</h3>
+
+<p>The core agentic loop, built into the Agent SDK. You don't write this — you configure it with a system prompt, tools, and a max-turns limit. The SDK runs it automatically.</p>
+
+<p><em>Example: a single Generate phase invocation.</em></p>
+
+<span class="code-label">think → act → observe</span>
+<pre><code>1. SDK sends system prompt + user message to Claude API
+   System: "You are a Go code generator. Read .migration/plan.md for your plan..."
+   User:   "Migrate payments/resolve_invoice.py to Go"
+
+2. Claude responds with a tool call:
+   → file_read(".migration/plan.md")
+
+3. SDK executes the tool, sends result back to Claude
+
+4. Claude responds with another tool call:
+   → file_read("payments/resolve_invoice.py")
+
+5. SDK executes, sends result back
+
+6. Claude responds with a tool call:
+   → file_write("payments/resolve_invoice.go", &lt;generated code&gt;)
+
+7. SDK executes, sends result back
+
+8. Claude responds with a text message (no tool call):
+   "Generated resolve_invoice.go with 3 resolvers and 2 types."
+
+9. SDK sees no tool call → loop exits → phase complete</code></pre>
+
+<p>Claude decides how many iterations it needs. A simple type migration might take 5–6 tool calls; a complex resolver with multiple files, 20–30.</p>
+
+<table>
+  <thead><tr><th>Config</th><th>Purpose</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>System prompt</td><td>Phase-specific instructions, constraints, output format</td><td>"Read the plan, generate Go code following existing patterns in <code>/pkg/...</code>"</td></tr>
+    <tr><td>Tools</td><td>What the agent can do (least privilege)</td><td>Generate gets <code>file_read</code>, <code>file_write</code>, <code>file_edit</code></td></tr>
+    <tr><td>Max turns</td><td>Safety limit on loop iterations</td><td>50 turns — prevents runaway agents</td></tr>
+    <tr><td>Model</td><td>Which Claude model</td><td><code>claude-sonnet-4-6</code> for Analyze/Plan, <code>claude-opus-4-6</code> for Generate</td></tr>
+  </tbody>
+</table>
+
+<h3><span class="loop-badge l2">LEVEL 2</span>Phase Sequence (orchestrator)</h3>
+
+<p>The agent-runner entrypoint (your code, not the SDK) calls each phase in order. Straightforward sequential logic — each <code>run_agent()</code> call spins up a fresh Level 1 loop.</p>
+
+<span class="code-label">agent-runner entrypoint · pseudocode</span>
+<pre><code>def run_migration(target: str):
+    update_phase_annotation("analyzing")
+    run_agent(phase="analyze", tools=[file_read, grep, glob])
+
+    update_phase_annotation("planning")
+    run_agent(phase="plan", tools=[file_read])
+
+    update_phase_annotation("generating")
+    run_agent(phase="generate", tools=[file_read, file_write, file_edit])
+
+    update_phase_annotation("validating")
+    success = run_agent(phase="validate", tools=[file_read, file_edit, bash])
+
+    if success:
+        update_phase_annotation("publishing")
+        run_agent(phase="publish", tools=[git, github_cli])
+    else:
+        raise ValidationFailed(read_file(".migration/validation.md"))</code></pre>
+
+<p>The orchestrator passes context between phases <em>via files, not by carrying over conversation state</em>.</p>
+
+<h3><span class="loop-badge l3">LEVEL 3</span>Cross-Phase Retry Loop</h3>
+
+<p>The most important loop for migration quality. When Validate fails, two layers of self-correction kick in before escalating.</p>
+
+<h4>Layer A — Intra-phase self-repair (inside Validate's Level 1 loop)</h4>
+<p>The Validate agent runs <code>go build</code>, sees an error, and fixes it within its own tool loop. Most issues (wrong import, missing error check, typo) resolve here without ever leaving the phase.</p>
+
+<span class="code-label">Validate agent · self-repair in action</span>
+<pre><code>Validate agent:
+  → bash("go build ./...")           → error: undefined: InvoiceResolver
+  → file_read("resolve_invoice.go")  → sees missing struct
+  → file_edit("resolve_invoice.go")  → adds the struct
+  → bash("go build ./...")           → success
+  → bash("go test ./...")            → runs tests</code></pre>
+
+<h4>Layer B — Cross-phase retry (orchestrator re-invokes Generate)</h4>
+<p>If the Validate agent exits its Level 1 loop without a passing build, the orchestrator escalates:</p>
+
+<span class="code-label">retry logic in agent-runner · pseudocode</span>
+<pre><code>for attempt in range(MAX_RETRIES):  # MAX_RETRIES = 2
+    run_agent(phase="generate", tools=[...],
+              extra_context=read_file(".migration/validation.md"))
+    #                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    #  Key: validation errors from the previous attempt are fed
+    #  into Generate's context so it can reason about what went wrong
+
+    success = run_agent(phase="validate", tools=[...])
+    if success:
+        break
+
+if not success:
+    label_job("needs-review")
+    exit(1)</code></pre>
+
+<div class="callout purple">
+  <p><strong>The critical detail.</strong> The Generate agent on retry is a <em>fresh</em> Agent SDK invocation with validation errors appended to its input. It doesn't carry over the conversation from the first attempt — it gets a clean context with "here's what you generated, here's why it failed, try again." This avoids sunk-cost thinking.</p>
+</div>
+
+<h3>What each loop handles</h3>
+<table>
+  <thead><tr><th>Failure type</th><th>Caught by</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>Wrong import path</td><td>Level 1 (Validate self-repair)</td><td><code>go build</code> error → agent fixes the import</td></tr>
+    <tr><td>Missing error handling</td><td>Level 1 (Validate self-repair)</td><td><code>golint</code> warning → agent adds <code>if err != nil</code></td></tr>
+    <tr><td>Wrong type mapping</td><td>Level 3 (cross-phase retry)</td><td>Multiple build errors → re-generate with error context</td></tr>
+    <tr><td>Fundamental misread of Python code</td><td>Level 3 exhausted → escalate</td><td>Still fails after retry → <code>needs-review</code></td></tr>
+    <tr><td>Pod crash / OOM</td><td>K8s <code>backoffLimit</code></td><td>Pod restarts from scratch on new node</td></tr>
+  </tbody>
+</table>
+
+<h3>Why not one big loop?</h3>
+<ol>
+  <li><strong>Context window pressure</strong> — A single loop accumulates every tool call and result. Separate invocations per phase keep each loop lean.</li>
+  <li><strong>No adversarial check</strong> — An agent that generated bad code is biased toward defending it. A fresh Validate agent acts as a genuine second opinion.</li>
+  <li><strong>No clean retry boundary</strong> — You can't tell an agent "forget the last 30 tool calls." Separate invocations give you a natural reset point.</li>
+  <li><strong>Observability</strong> — With separate phases, you see exactly where a migration is stuck. With one loop, you just see "running."</li>
+</ol>
+</section>
+
+<!-- =========================================================== -->
+<section id="mcp">
+<h2><span class="num">5.</span>MCP Server</h2>
+
+<p class="lead">A shared MCP server Deployment serves two concerns: <strong>RAG context</strong> for code generation (Analyze, Plan, Generate) and <strong>structured validation analysis</strong> (Validate). Agents call it like any other tool via the Agent SDK's MCP client over HTTP/SSE.</p>
+
+<h3>RAG tools (Analyze, Plan, Generate)</h3>
+<table>
+  <thead><tr><th>Tool</th><th>Input</th><th>Returns</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>search_schemas</code></td><td>Query string or type name</td><td>Matching GraphQL schema definitions with file paths + line numbers</td><td>Discover schemas without grepping</td></tr>
+    <tr><td><code>get_resolver</code></td><td>GraphQL type or field</td><td>Python resolver impl with imports and class hierarchy</td><td>Understand the source to migrate</td></tr>
+    <tr><td><code>find_go_patterns</code></td><td>Pattern description</td><td>Ranked Go implementations from the repo</td><td>Ground generation in real repo patterns</td></tr>
+    <tr><td><code>get_type_graph</code></td><td>GraphQL type name</td><td>Dependency graph of related types</td><td>Full migration boundary in one call</td></tr>
+    <tr><td><code>find_similar_migrations</code></td><td>Target description</td><td>Past contexts, plans, outcomes from Postgres</td><td>Learn from prior migrations</td></tr>
+  </tbody>
+</table>
+
+<h3>Validation tools (Validate)</h3>
+<table>
+  <thead><tr><th>Tool</th><th>Input</th><th>Returns</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>validate_build</code></td><td>Raw <code>go build</code> stderr</td><td>Structured <code>{file, line, column, message, category, suggestion}</code></td><td>Actionable errors vs raw compiler output</td></tr>
+    <tr><td><code>validate_schemas</code></td><td>Python + Go schema text</td><td>Compatibility report: missing types, mismatches, nullability</td><td>Catches schema drift <code>go build</code> misses</td></tr>
+    <tr><td><code>run_tap</code></td><td>Raw <code>go test</code> output</td><td>Per-test <code>{name, status, message, duration, coverage}</code></td><td>Structured test reasoning</td></tr>
+    <tr><td><code>compare_implementations</code></td><td>Python + Go source + sample queries</td><td>Per-query behavioral diff</td><td>Ensure Go behaves like Python</td></tr>
+  </tbody>
+</table>
+
+<h3>Execution / analysis split</h3>
+<p>The MCP server does the <em>analysis</em>; the agent does the <em>execution</em>. This keeps the MCP server stateless while the Pod handles anything needing the workspace.</p>
+
+<span class="code-label">Validate agent · MCP interaction</span>
+<pre><code>Validate agent (inside Pod):
+
+  1. Run build locally
+     → bash("go build ./...")              → gets raw stderr
+
+  2. Send raw output to MCP for structured parsing
+     → mcp.validate_build(raw_stderr)
+     → gets: [{file: "resolver.go", line: 42, message: "undefined: InvoiceInput",
+                suggestion: "missing type — check get_type_graph"}]
+
+  3. Fix the error using structured info
+     → file_edit("resolver.go", ...)
+
+  4. Compare schemas
+     → file_read("schema.graphql")          # Python
+     → file_read("schema.go")               # Go
+     → mcp.validate_schemas(python_schema, go_schema)
+
+  5. Run tests locally
+     → bash("go test -v ./... 2>&amp;1")
+     → mcp.run_tap(raw_output)
+
+  6. Compare behavior
+     → mcp.compare_implementations(python_source, go_source, sample_queries)
+
+  7. Fix issues, re-run until green</code></pre>
+
+<h3>RAG pipeline</h3>
+<p>A nightly (or on-push) CronJob:</p>
+<ol>
+  <li><strong>Parse</strong> — Walk the monorepo. Extract GraphQL types, Python classes/functions, Go functions/structs.</li>
+  <li><strong>Chunk</strong> — One chunk per type, method, or function, each with metadata.</li>
+  <li><strong>Embed</strong> — Generate vector embeddings.</li>
+  <li><strong>Store</strong> — Write to a PersistentVolume mounted by the MCP server (~50–200MB for a large monorepo).</li>
+</ol>
+
+<h3>Deployment manifest</h3>
+<span class="code-label">k8s · migration-mcp Deployment</span>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: migration-mcp
+  namespace: migration
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: migration-mcp
+  template:
+    spec:
+      serviceAccountName: migration-mcp
+      containers:
+      - name: mcp-server
+        image: your-registry/migration-mcp:latest
+        ports:
+        - containerPort: 8080    # SSE transport
+        volumeMounts:
+        - name: vector-index
+          mountPath: /index
+          readOnly: true
+        env:
+        - name: POSTGRES_URL
+          valueFrom:
+            secretKeyRef:
+              name: mcp-credentials
+              key: postgres-url
+        resources:
+          requests:
+            memory: "1Gi"
+          limits:
+            memory: "2Gi"
+      volumes:
+      - name: vector-index
+        persistentVolumeClaim:
+          claimName: migration-vector-index
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: migration-mcp
+  namespace: migration
+spec:
+  selector:
+    app: migration-mcp
+  ports:
+  - port: 8080</code></pre>
+
+<h3>Agent SDK integration</h3>
+<p>The agent-runner configures the MCP server as a remote tool source. The SDK handles the MCP protocol — Claude sees MCP tools alongside local tools with no distinction.</p>
+
+<span class="code-label">agent-runner · MCP wiring</span>
+<pre><code>MCP_SERVER = MCPServer(
+    name="migration-context",
+    transport="sse",
+    url="http://migration-mcp.migration.svc:8080",
+)
+
+def run_agent(phase, tools, mcp_tools=[]):
+    agent = Agent(
+        model="claude-sonnet-4-6",
+        system_prompt=load_prompt(phase),
+        tools=tools,
+        mcp_servers=[
+            MCP_SERVER.with_allowed_tools(mcp_tools)
+        ] if mcp_tools else [],
+    )
+    return agent.run(user_message=build_message(phase))
+
+# Phase invocations with MCP tools scoped per phase
+run_agent("analyze",  tools=[file_read, grep, glob],
+          mcp_tools=["search_schemas", "get_resolver", "get_type_graph"])
+
+run_agent("plan",     tools=[file_read],
+          mcp_tools=["find_go_patterns", "find_similar_migrations"])
+
+run_agent("generate", tools=[file_read, file_write, file_edit],
+          mcp_tools=["find_go_patterns", "search_schemas", "generate_go_code"])
+
+run_agent("validate", tools=[file_read, file_edit, bash],
+          mcp_tools=["validate_build", "validate_schemas", "run_tap",
+                     "compare_implementations"])
+
+run_agent("publish",  tools=[git, github_cli],
+          mcp_tools=[])  # no MCP tools needed</code></pre>
+</section>
+
+<!-- =========================================================== -->
+<section id="finetune">
+<h2><span class="num">6.</span>Fine-Tuned Model for Go Code Generation</h2>
+
+<p class="lead">Claude handles reasoning, planning, orchestration. But for generating Go that matches the repo's exact conventions — naming, error handling, package structure, internal library usage — a <strong>LoRA fine-tuned open model</strong> trained on the repo's own code produces more consistent output than prompting alone.</p>
+
+<h3>Model selection</h3>
+<table>
+  <thead><tr><th></th><th>Qwen2.5-Coder-14B</th><th>Qwen2.5-Coder-7B</th><th>StarCoder2-15B</th></tr></thead>
+  <tbody>
+    <tr><td><strong>License</strong></td><td>Apache 2.0</td><td>Apache 2.0</td><td>OpenRAIL-M (commercial OK)</td></tr>
+    <tr><td><strong>Go baseline</strong></td><td>Strong — 5.5T tokens, explicit Go</td><td>Good — same data, smaller</td><td>Moderate — needs instruction tuning</td></tr>
+    <tr><td><strong>Inference VRAM</strong></td><td>~28GB fp16, ~12GB 4-bit</td><td>~14GB fp16, ~7GB 4-bit</td><td>~30GB fp16, ~12GB 4-bit</td></tr>
+    <tr><td><strong>Fine-tune VRAM</strong></td><td>~24GB QLoRA on A100</td><td>~16GB QLoRA</td><td>~24GB QLoRA</td></tr>
+    <tr><td><strong>Best for</strong></td><td>Primary recommendation</td><td>Budget / faster iteration</td><td>Data provenance matters</td></tr>
+  </tbody>
+</table>
+
+<div class="callout green">
+  <p><strong>Recommendation: Qwen2.5-Coder-14B-Instruct.</strong> Best Go quality in the fine-tunable size range, Apache 2.0, QLoRA practical on a single A100. Fall back to 7B if GPU budget is tight.</p>
+</div>
+
+<h3>What to fine-tune on</h3>
+<p>Training data comes from your monorepo — three sources combined into instruction-formatted examples:</p>
+
+<h4>1. Existing Go code (pattern learning)</h4>
+<pre><code>Input:  "Write a Go resolver for a GraphQL query that returns a paginated
+         list of orders with cursor-based pagination"
+Output: &lt;actual Go code from your repo that does exactly this&gt;</code></pre>
+
+<h4>2. Python→Go pairs (migration learning)</h4>
+<pre><code>Input:  "Migrate this Python GraphQL resolver to Go:\n\n&lt;Python source&gt;"
+Output: &lt;corresponding Go implementation from your repo&gt;</code></pre>
+
+<h4>3. Schema→implementation pairs (type mapping)</h4>
+<pre><code>Input:  "Implement this GraphQL schema in Go using gqlgen:\n\n&lt;schema snippet&gt;"
+Output: &lt;Go types, resolvers, and schema registration from your repo&gt;</code></pre>
+
+<h3>LoRA training pipeline</h3>
+
+<div class="diagram">
+  <canvas id="loraCanvas" width="840" height="240"></canvas>
+  <div class="caption">Figure 5 — Extract → Format → Train → Evaluate → Publish. Produces a ~50–100MB adapter.</div>
+</div>
+
+<p>The base model is never modified. The LoRA adapter is a small overlay — you can version adapters and roll back. Retraining is incremental: new code → new pairs → updated adapter.</p>
+
+<h3>Inference server</h3>
+<span class="code-label">k8s · vLLM Deployment with LoRA</span>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: codegen-model
+  namespace: migration
+spec:
+  replicas: 1
+  template:
+    spec:
+      serviceAccountName: migration-codegen
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        args:
+        - "--model=Qwen/Qwen2.5-Coder-14B-Instruct"
+        - "--enable-lora"
+        - "--lora-modules=repo-patterns=/adapters/repo-lora"
+        - "--quantization=awq"           # 4-bit for lower VRAM
+        - "--max-model-len=8192"
+        - "--port=8000"
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: lora-adapters
+          mountPath: /adapters
+          readOnly: true
+        resources:
+          requests:
+            nvidia.com/gpu: 1             # single A100 or A10G
+            memory: "16Gi"
+          limits:
+            nvidia.com/gpu: 1
+            memory: "32Gi"
+      volumes:
+      - name: lora-adapters
+        persistentVolumeClaim:
+          claimName: codegen-lora-adapters
+      nodeSelector:
+        gpu: "true"</code></pre>
+
+<h3>How it integrates with the Generate phase</h3>
+<p>The fine-tuned model is exposed through the MCP server as a new tool: <code>generate_go_code</code>. Claude doesn't call the model directly — the MCP server routes to vLLM internally.</p>
+
+<span class="code-label">Generate phase · using the fine-tuned model</span>
+<pre><code>Claude (Generate agent):
+
+  1. Reads the plan and Python source
+     → file_read(".migration/plan.md")
+     → file_read("payments/resolve_invoice.py")
+
+  2. Finds existing patterns to follow
+     → mcp.find_go_patterns("invoice resolver with DB transaction")
+
+  3. Asks the fine-tuned model to generate code
+     → mcp.generate_go_code(
+         python_source=&lt;resolver code&gt;,
+         schema=&lt;GraphQL schema&gt;,
+         pattern_hint="Follow pkg/resolvers/order.go"
+       )
+     → gets: Go code that follows repo conventions
+
+  4. Reviews and adapts the generated code
+     → file_write("payments/resolve_invoice.go", &lt;adapted code&gt;)</code></pre>
+
+<div class="callout">
+  <p><strong>Why combine both models?</strong><br>
+  <em>Claude alone</em>: correct logic, but may not match repo conventions.<br>
+  <em>Fine-tuned model alone</em>: matches conventions, but limited reasoning.<br>
+  <em>Combined</em>: repo-consistent code with Claude-quality reasoning.</p>
+</div>
+
+<h3>Why not fine-tune Claude instead?</h3>
+<table>
+  <thead><tr><th>Approach</th><th>Pros</th><th>Cons</th></tr></thead>
+  <tbody>
+    <tr><td>LoRA on open model</td><td>Cheap ($10–50/run), small adapter, retrain weekly, full data control</td><td>Weaker reasoning than Claude</td></tr>
+    <tr><td>Claude fine-tuning</td><td>Best reasoning + your patterns in one model</td><td>Expensive, slow iteration, overkill for style</td></tr>
+    <tr><td>Prompt-only</td><td>Zero training cost, always current</td><td>Context limits, inconsistent style</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- =========================================================== -->
+<section id="deployment">
+<h2><span class="num">7.</span>Deployment Model</h2>
+
+<p class="lead">All components run in the <code>migration</code> namespace of a single K8s cluster.</p>
+
+<table>
+  <thead><tr><th>Component</th><th>What</th><th>How</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Migration Controller</strong></td><td>Deployment (1–2 replicas)</td><td>Accepts requests, creates Job manifests, watches for completion, writes to Postgres. SA: <code>migration-controller</code>.</td></tr>
+    <tr><td><strong>Job Pods</strong></td><td>K8s Jobs (one per migration)</td><td>Run the 5-phase pipeline. Image bundles Agent SDK + Go toolchain + git. Gets an <code>emptyDir</code>. SA: <code>migration-runner</code>.</td></tr>
+    <tr><td><strong>MCP Server</strong></td><td>Deployment (2 replicas)</td><td>Shared RAG + validation tools over SSE. Loads vector index from PVC. SA: <code>migration-mcp</code>.</td></tr>
+    <tr><td><strong>Index Builder</strong></td><td>CronJob (nightly or on push)</td><td>Parses repo, generates embeddings, writes to PVC.</td></tr>
+    <tr><td><strong>System Prompts</strong></td><td>ConfigMap</td><td>Phase-specific prompts + Go templates. Mounted read-only. Update without rebuilding.</td></tr>
+    <tr><td><strong>Credentials</strong></td><td>Secret</td><td><code>ANTHROPIC_API_KEY</code>, <code>GITHUB_TOKEN</code>, SSH keys. Injected as env vars. Pods can't read Secret objects directly.</td></tr>
+    <tr><td><strong>Codegen Model</strong></td><td>Deployment (1 replica, GPU)</td><td>vLLM serving Qwen2.5-Coder-14B with QLoRA adapter. Called by MCP internally. A100 or A10G.</td></tr>
+    <tr><td><strong>LoRA Training</strong></td><td>K8s Job (manual / scheduled)</td><td>Produces ~50–100MB adapter to PVC.</td></tr>
+    <tr><td><strong>Postgres</strong></td><td>StatefulSet or managed DB</td><td>Historical ledger. Not in the critical path.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p><strong>Scaling.</strong> Add nodes to the cluster. K8s schedules Pods across capacity. Each Pod is CPU-light (mostly waiting on Claude) but needs ~2GB RAM and ~1GB disk. Concurrency is controlled via <code>ResourceQuota</code> on the <code>migration</code> namespace.</p>
+</div>
+</section>
+
+<!-- =========================================================== -->
+<section id="state">
+<h2><span class="num">8.</span>State &amp; Memory Model</h2>
+
+<p>State lives in two places with distinct roles:</p>
+
+<table>
+  <thead><tr><th>State type</th><th>Where</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Active job status</strong></td><td>K8s Job object</td><td>Source of truth while running. Native <code>Pending</code>/<code>Running</code>/<code>Succeeded</code>/<code>Failed</code>; phase progress via <code>migration.dev/phase</code> annotation.</td></tr>
+    <tr><td><strong>Historical record</strong></td><td>Postgres</td><td>Written on completion or failure. Powers dashboards and audit.</td></tr>
+    <tr><td><strong>Inter-phase context</strong></td><td>Files in <code>/workspace/.migration/</code></td><td>Ephemeral — lives only during Job execution.</td></tr>
+  </tbody>
+</table>
+
+<h3>Postgres schema (historical ledger)</h3>
+<span class="code-label">Job table</span>
+<pre><code>Job {
+  id:           uuid
+  k8s_job_name: string          -- e.g., "migrate-resolve-invoice-a1b2"
+  target:       string          -- e.g., "payments/resolve_invoice.py"
+  branch:       string          -- "migrate/payments-resolve-invoice-abc123"
+  status:       enum            -- DONE | FAILED | NEEDS_REVIEW
+  final_phase:  string          -- last phase reached
+  phase_logs:   jsonb           -- per-phase timing, token usage, errors
+  pr_url:       string?
+  triggered_by: string
+  created_at:   timestamp
+  completed_at: timestamp
+}</code></pre>
+
+<p>Postgres only receives terminal states — <code>PENDING</code>, <code>ANALYZING</code>, etc. are the K8s API's job.</p>
+
+<h3>Pod-local state (ephemeral volume)</h3>
+<span class="code-label">/workspace layout</span>
+<pre><code>/workspace/                          (emptyDir volume)
+├── .migration/
+│   ├── context.md                   -- Analyzer output
+│   ├── plan.md                      -- Planner output
+│   ├── validation.md                -- Validator output
+│   └── job.json                     -- Job metadata (target, config)
+├── (monorepo files...)
+└── (generated Go files...)</code></pre>
+
+<p>The <code>.migration/</code> directory is the <strong>inter-agent communication channel</strong>. Each phase reads from previous phases' files and writes its own. Intentionally simple:</p>
+<ul>
+  <li>No message bus or shared memory between agents</li>
+  <li>Files are human-readable — <code>kubectl cp</code> them out of a running Pod for debugging</li>
+  <li>Generated code is pushed to the branch before the Pod exits, so nothing is lost on emptyDir reclaim</li>
+</ul>
+</section>
+
+<!-- =========================================================== -->
+<section id="decisions">
+<h2><span class="num">9.</span>Key Design Decisions</h2>
+
+<table>
+  <thead><tr><th>Decision</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td><strong>K8s Jobs for execution, Postgres for history</strong></td><td>K8s handles scheduling, queuing, retries, isolation natively. Postgres adds queryability for dashboards. No Redis or custom worker pool.</td></tr>
+    <tr><td><strong>Pod = isolation boundary</strong></td><td>Stronger than git worktrees. Own filesystem, process space, network, credentials. Runaway agent in one Pod can't touch another.</td></tr>
+    <tr><td><strong>Agent SDK, not raw API</strong></td><td>SDK manages tool loop, retries, conversation state. Less code.</td></tr>
+    <tr><td><strong>emptyDir, not PVC</strong></td><td>Workspaces are ephemeral. Code is pushed before exit. Auto-cleans.</td></tr>
+    <tr><td><strong>ConfigMap for system prompts</strong></td><td>Tune behavior without rebuilding images. New Jobs pick up changes immediately.</td></tr>
+    <tr><td><strong>Files for inter-agent state</strong></td><td>Simpler than queue or DB. Human-inspectable.</td></tr>
+    <tr><td><strong>Sequential phases, not parallel agents</strong></td><td>Migration is inherently sequential. Parallelism at the <em>job</em> level, not phase level.</td></tr>
+    <tr><td><strong>Validate self-repair loop</strong></td><td>Most failures are small (wrong import, typo). Fixing in-phase avoids expensive re-generation.</td></tr>
+    <tr><td><strong>Shared MCP server, not sidecar</strong></td><td>Stateless, read-only. RAG returns file pointers; agent reads locally. Validation accepts raw output; agent runs builds locally. One Deployment avoids duplicated memory.</td></tr>
+    <tr><td><strong>LoRA on open model, not Claude FT</strong></td><td>Claude handles reasoning; open model handles style. LoRA is cheap, fast to iterate.</td></tr>
+    <tr><td><strong>Per-migration token budgets</strong></td><td>Hard limits on tool calls and tokens per phase. Fail fast instead of silently overspending.</td></tr>
+    <tr><td><strong>Approval gates opt-in, not default</strong></td><td>Autonomy is the default; <code>--approve-plan</code> is available for high-risk targets.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- =========================================================== -->
+<section id="rbac">
+<h2><span class="num">10.</span>Identity, RBAC &amp; Least Privilege</h2>
+
+<p class="lead">Each component runs with its own ServiceAccount, scoped to the minimum permissions it needs.</p>
+
+<h3>ServiceAccount boundaries</h3>
+<span class="code-label">RBAC map</span>
+<pre><code>migration-controller (Deployment)
+  ├── Can:    create/delete Jobs, list/watch Jobs, read ConfigMaps
+  ├── Can:    reference Secrets in Job specs (but not read their contents)
+  ├── Can:    write to Postgres
+  └── Cannot: exec into Pods, access other namespaces
+
+migration-runner (Job Pods)
+  ├── Can:    patch own Job's annotations (phase updates)
+  ├── Can:    read ConfigMaps (system prompts)
+  ├── Can:    connect to migration-mcp Service (HTTP/SSE)
+  ├── Has:    ANTHROPIC_API_KEY, GITHUB_TOKEN injected as env vars
+  └── Cannot: create/delete Jobs, list other Jobs, read Secret objects
+
+migration-mcp (MCP Server Deployment)
+  ├── Can:    read PVC (vector index, read-only)
+  ├── Can:    read Postgres (migration history, read-only)
+  ├── Can:    connect to codegen-model Service (HTTP)
+  ├── Can:    accept connections from migration-runner Pods
+  └── Cannot: create Jobs, access Secrets, write to Postgres
+
+migration-codegen (Codegen Model Deployment)
+  ├── Can:    read PVC (LoRA adapters, read-only)
+  ├── Can:    accept connections from migration-mcp Pods
+  └── Cannot: access K8s API, read Secrets, connect to Postgres, reach internet</code></pre>
+
+<h3>Agent-level least privilege</h3>
+<p>K8s RBAC secures the Pod boundary. Within the Pod, each phase gets a different tool set via the Agent SDK:</p>
+
+<table>
+  <thead><tr><th>Phase</th><th>Local tools</th><th>MCP tools</th><th>Withheld</th></tr></thead>
+  <tbody>
+    <tr><td>Analyze</td><td><code>file_read</code>, <code>grep</code>, <code>glob</code></td><td><code>search_schemas</code>, <code>get_resolver</code>, <code>get_type_graph</code></td><td><code>file_write</code>, <code>bash</code>, <code>git</code>, validation MCP</td></tr>
+    <tr><td>Plan</td><td><code>file_read</code></td><td><code>find_go_patterns</code>, <code>find_similar_migrations</code></td><td><code>file_write</code>, <code>bash</code>, <code>git</code>, validation MCP</td></tr>
+    <tr><td>Generate</td><td><code>file_read</code>, <code>file_write</code>, <code>file_edit</code></td><td><code>find_go_patterns</code>, <code>search_schemas</code>, <code>generate_go_code</code></td><td><code>bash</code>, <code>git</code>, validation MCP</td></tr>
+    <tr><td>Validate</td><td><code>file_read</code>, <code>file_edit</code>, <code>bash</code></td><td><code>validate_build</code>, <code>validate_schemas</code>, <code>run_tap</code>, <code>compare_implementations</code></td><td><code>git</code>, github, RAG MCP</td></tr>
+    <tr><td>Publish</td><td><code>git</code>, github CLI</td><td><em>(none)</em></td><td><code>file_write</code>, <code>bash</code>, all MCP</td></tr>
+  </tbody>
+</table>
+
+<p>Even if an agent's reasoning goes wrong, the blast radius is bounded. Generate can't push to GitHub. Analyze can't modify files. Publish can't silently change code before pushing.</p>
+
+<h3>Network policy (optional hardening)</h3>
+<span class="code-label">egress restrictions</span>
+<pre><code>migration-runner Pods:
+  Egress allow:
+    - api.anthropic.com:443          (Claude API)
+    - github.com:22, github.com:443  (git push, PR creation)
+    - migration-mcp.migration.svc:8080
+    - DNS (kube-dns)
+  Egress deny:
+    - Everything else (internal services, metadata API, other namespaces)
+
+migration-mcp Pods:
+  Egress allow:
+    - Postgres (read-only queries)
+    - codegen-model.migration.svc:8000
+    - DNS
+  Egress deny:
+    - No internet, no Claude API, no GitHub
+
+codegen-model Pods:
+  Ingress allow:
+    - migration-mcp Pods on port 8000
+  Egress deny:
+    - Everything else (fully air-gapped)</code></pre>
+</section>
+
+<!-- =========================================================== -->
+<section id="observability">
+<h2><span class="num">11.</span>Observability &amp; Metrics</h2>
+
+<p class="lead">Three layers of metrics, each serving a different audience: migration quality (engineering leads), infrastructure health (SRE), cost tracking (finance/management).</p>
+
+<h3>Migration metrics (Postgres + dashboard)</h3>
+<table>
+  <thead><tr><th>Metric</th><th>What it tells you</th></tr></thead>
+  <tbody>
+    <tr><td>First-attempt success rate</td><td>Is the system getting better?</td></tr>
+    <tr><td>Phase failure distribution</td><td>Which phase fails most?</td></tr>
+    <tr><td>Retry count distribution</td><td>How often does self-correction save a run?</td></tr>
+    <tr><td>End-to-end duration</td><td>How long does a migration take?</td></tr>
+    <tr><td>Token usage per phase</td><td>Where's the cost? Which phase is verbose?</td></tr>
+    <tr><td>PR merge rate</td><td>% of generated PRs that get merged</td></tr>
+    <tr><td>Time to merge</td><td>Developer trust signal</td></tr>
+    <tr><td>Build/test first-pass rate</td><td>Code generation quality</td></tr>
+  </tbody>
+</table>
+
+<h3>Infrastructure metrics (Prometheus + Grafana)</h3>
+<ul>
+  <li>MCP server request latency (p50/p95/p99) — alert at p99 &gt; 2s</li>
+  <li>Codegen model inference latency — alert at p95 &gt; 10s</li>
+  <li>Codegen GPU utilization (DCGM exporter) — scale at &gt;90% sustained</li>
+  <li>Concurrent running Jobs — alert when approaching ResourceQuota</li>
+  <li>Pending Jobs queue depth — alert at &gt;10 pending for &gt;15min</li>
+  <li>RAG index age — alert &gt; 48hr since last rebuild</li>
+</ul>
+
+<h3>Quality metrics (per migration)</h3>
+<span class="code-label">phase_logs · jsonb sample</span>
+<pre><code>{
+  "analyze": {"duration_s": 45, "tokens": 8200, "tool_calls": 12},
+  "plan":    {"duration_s": 30, "tokens": 5100, "tool_calls": 6},
+  "generate": {
+    "duration_s": 120,
+    "tokens": 22000,
+    "tool_calls": 34,
+    "codegen_model_calls": 3,
+    "codegen_model_acceptance_rate": 0.67
+  },
+  "validate": {
+    "duration_s": 90,
+    "tokens": 15000,
+    "tool_calls": 28,
+    "build_pass_first": false,
+    "build_errors_initial": 4,
+    "build_errors_after_repair": 0,
+    "tests_total": 12,
+    "tests_pass": 12,
+    "schema_compatibility": 1.0,
+    "behavioral_match": 0.95
+  },
+  "publish": {"duration_s": 15, "tokens": 2000, "tool_calls": 5}
+}</code></pre>
+
+<h3>Key dashboards</h3>
+<ul>
+  <li><strong>Migration Health</strong> (engineering leads) — success rate trend, phase failure heatmap, median duration.</li>
+  <li><strong>Cost Tracker</strong> (management) — daily spend, cost per migration, cost breakdown by phase.</li>
+  <li><strong>System Health</strong> (SRE) — MCP latency, GPU utilization, queue depth.</li>
+  <li><strong>Quality Tracker</strong> (prompt engineers) — compilation rate, test pass rate, prompt-version vs success correlation.</li>
+</ul>
+</section>
+
+<!-- =========================================================== -->
+<section id="cost">
+<h2><span class="num">12.</span>Cost Controls</h2>
+
+<p>Claude API calls are the largest cost driver. Without guardrails, a single runaway migration or a batch of retries can burn through budget.</p>
+
+<h3>Per-migration limits</h3>
+<table>
+  <thead><tr><th>Control</th><th>Value</th><th>Enforced by</th></tr></thead>
+  <tbody>
+    <tr><td>Max tool calls per phase</td><td>50 (Analyze, Plan), 80 (Generate), 60 (Validate), 10 (Publish)</td><td>Agent SDK <code>max_turns</code></td></tr>
+    <tr><td>Max cross-phase retries</td><td>2</td><td>agent-runner entrypoint</td></tr>
+    <tr><td>Max total tokens per migration</td><td>200,000</td><td>agent-runner: sum across phases</td></tr>
+    <tr><td>Max duration per migration</td><td>30 min</td><td>K8s Job <code>activeDeadlineSeconds</code></td></tr>
+  </tbody>
+</table>
+
+<h3>System-wide limits</h3>
+<table>
+  <thead><tr><th>Control</th><th>Value</th><th>Enforced by</th></tr></thead>
+  <tbody>
+    <tr><td>Max concurrent migrations</td><td>10 (configurable)</td><td>ResourceQuota on namespace</td></tr>
+    <tr><td>Daily token budget</td><td>5,000,000 tokens</td><td>Controller: query PG, reject if over</td></tr>
+    <tr><td>Daily migration cap</td><td>50/day</td><td>Controller counter</td></tr>
+    <tr><td>Per-user rate limit</td><td>5 concurrent</td><td>Controller: check <code>triggered-by</code> label</td></tr>
+  </tbody>
+</table>
+
+<h3>Cost estimation before execution</h3>
+<span class="code-label">controller · dry-run estimation</span>
+<pre><code>def estimate_cost(target: str) -> CostEstimate:
+    similar_jobs = query_postgres(
+        "SELECT tokens_*, status FROM jobs WHERE target SIMILAR TO %s "
+        "ORDER BY completed_at DESC LIMIT 20", target
+    )
+    avg_tokens = mean(sum(j.tokens_* for phase) for j in similar_jobs)
+    estimated_cost = avg_tokens * PRICE_PER_TOKEN
+    return CostEstimate(
+        tokens=avg_tokens,
+        cost=estimated_cost,
+        confidence=len(similar_jobs)/20
+    )</code></pre>
+
+<p>This powers a CLI <code>--dry-run</code>: <em>"Estimated cost: $0.45, based on 18 similar migrations."</em></p>
+</section>
+
+<!-- =========================================================== -->
+<section id="hitl">
+<h2><span class="num">13.</span>Human-in-the-Loop Workflow</h2>
+
+<p class="lead">The system is autonomous but not unsupervised. Developers interact at three points: <strong>triggering</strong>, <strong>reviewing</strong>, and <strong>providing feedback</strong>. Each is designed so the system works without input in the happy path, but humans can intervene at any stage.</p>
+
+<h3>Trigger-time controls</h3>
+<span class="code-label">CLI flags</span>
+<pre><code># Default: fully autonomous, creates PR
+migrate --target payments/resolve_invoice.py
+
+# Dry run: Analyze + Plan only, shows plan, no code generated
+migrate --target payments/resolve_invoice.py --dry-run
+
+# Approval gate: pauses after Plan, waits for human approval
+migrate --target payments/resolve_invoice.py --approve-plan
+
+# Cost estimate: shows estimated cost, asks for confirmation
+migrate --target payments/resolve_invoice.py --estimate</code></pre>
+
+<h4><code>--approve-plan</code> flow</h4>
+<ol>
+  <li>Analyze → Plan → writes <code>plan.md</code></li>
+  <li>Agent-runner pauses, updates Job annotation: <code>migration.dev/phase = "awaiting-approval"</code></li>
+  <li>Controller detects the annotation, sends plan to developer via Slack/email</li>
+  <li>Developer: <em>approves</em> → agent-runner resumes Generate → Validate → Publish.<br>
+      <em>Rejects with feedback</em> → feedback written to <code>.migration/plan_feedback.md</code>, Plan re-runs.<br>
+      <em>Cancels</em> → Controller deletes the Job.</li>
+</ol>
+
+<h3>Review-time workflow</h3>
+<p>The PR description includes: migration summary (from <code>context.md</code>), what changed and why (from <code>plan.md</code>), validation results, token usage, retry/confidence indicators.</p>
+
+<p>The Publish phase posts review-ready comments highlighting areas needing attention:</p>
+<span class="code-label">PR review comment (generated)</span>
+<pre><code>&lt;!-- migration-agent: review-needed --&gt;
+### Areas needing review
+
+1. **Behavioral difference detected** (line 42-58 in resolve_invoice.go):
+   Python returns `null` for deleted invoices, Go returns an error.
+   The agent chose to match Python behavior, but verify this is correct.
+
+2. **No test coverage for edge case** (line 89):
+   The `currency` field has no test for the `nil` case.
+
+3. **Internal library usage** (line 12):
+   Used `pkg/db.QueryRow` based on pattern in `pkg/resolvers/order.go`.
+   Verify this is the correct DB access pattern for this service.</code></pre>
+
+<h3>Feedback flywheel</h3>
+<p>When a developer modifies a generated PR before merging, that diff is signal. The controller captures it on merge:</p>
+<ol>
+  <li>GitHub webhook notifies controller on PR merge.</li>
+  <li>Controller diffs <em>what the agent generated</em> vs <em>what was merged</em>.</li>
+  <li>If non-trivial, stores the correction in Postgres categorized as <em>style fix</em>, <em>logic fix</em>, <em>missing error handling</em>, <em>wrong pattern</em>.</li>
+</ol>
+
+<table>
+  <thead><tr><th>Feedback type</th><th>Improves</th><th>How</th></tr></thead>
+  <tbody>
+    <tr><td>Style corrections</td><td>LoRA training data</td><td>Add corrected code to next training batch</td></tr>
+    <tr><td>Logic fixes</td><td>System prompts</td><td>Add "common mistakes" to Generate prompt</td></tr>
+    <tr><td>Pattern corrections</td><td>RAG index</td><td>Boost correct pattern's relevance</td></tr>
+    <tr><td>Schema mismatches</td><td>Validation tools</td><td>Add rule to <code>validate_schemas</code></td></tr>
+  </tbody>
+</table>
+
+<div class="callout green">
+  <p>This creates a flywheel: migrations produce PRs → developers fix PRs → fixes improve the system → next migrations are better → developers fix less.</p>
+</div>
+
+<h3>Handling <code>needs-review</code> migrations</h3>
+<p>When a migration exhausts all retries, the developer gets a notification with what was attempted, where it failed, and a link to the pushed branch (code is preserved even on failure). They can fix manually, or re-trigger with a hint:</p>
+
+<span class="code-label">re-trigger with developer hint</span>
+<pre><code>migrate --target payments/resolve_invoice.py \
+        --hint "The InvoiceStatus enum is in shared/enums.py, not in the resolver file"</code></pre>
+<p>The hint is injected into the Analyze phase's system prompt for the retry.</p>
+
+<h3>Cancellation</h3>
+<span class="code-label">graceful cancellation</span>
+<pre><code>migrate --cancel migrate-resolve-invoice-a1b2
+
+# What happens:
+# 1. Controller sends SIGTERM to the Job Pod
+# 2. Agent-runner catches signal, writes state to .migration/cancelled.md
+# 3. If any code was generated, pushes the branch (preserves partial work)
+# 4. Controller marks Postgres record as CANCELLED
+# 5. Developer gets notification with link to partial branch</code></pre>
+
+<hr style="border: none; border-top: 1px solid var(--border); margin: 60px 0 30px;">
+
+<p class="lead" style="color: var(--muted);">This architecture gets you from "developer types a command" to "PR is open" with a K8s cluster, two container images (agent-runner + MCP server), a GPU node for the codegen model, and a Postgres instance. Autonomous in the happy path but transparent and interruptible — developers can preview plans, set budget limits, review with structured context, provide feedback that improves future runs, and cancel at any point. The hard parts live in the <strong>system prompts</strong>, the <strong>RAG index quality</strong>, the <strong>validation tool logic</strong>, and the <strong>feedback flywheel</strong>.</p>
+
+</section>
+
+</article>
+</div>
+
+<script>
+// ============================================================
+// Active-section highlighting in TOC
+// ============================================================
+const sections = document.querySelectorAll('section[id]');
+const tocLinks = document.querySelectorAll('nav.toc a');
+function updateToc() {
+  let active = sections[0].id;
+  const scrollPos = window.scrollY + 120;
+  sections.forEach(s => { if (s.offsetTop <= scrollPos) active = s.id; });
+  tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + active));
+}
+window.addEventListener('scroll', updateToc);
+window.addEventListener('load', updateToc);
+
+// ============================================================
+// Canvas drawing helpers
+// ============================================================
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+}
+function arrow(ctx, x1, y1, x2, y2, color, lbl, dashed) {
+  color = color || '#94a3b8';
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 2;
+  if (dashed) ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - 10 * Math.cos(a - 0.4), y2 - 10 * Math.sin(a - 0.4));
+  ctx.lineTo(x2 - 10 * Math.cos(a + 0.4), y2 - 10 * Math.sin(a + 0.4));
+  ctx.closePath();
+  ctx.fill();
+  if (lbl) {
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(lbl, (x1 + x2) / 2, (y1 + y2) / 2 - 6);
+  }
+}
+function label(ctx, str, x, y, color, size, bold) {
+  ctx.fillStyle = color || '#e2e8f0';
+  ctx.font = (bold ? 'bold ' : '') + (size || 13) + 'px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(str, x, y);
+}
+
+// ============================================================
+// Figure 1 — Overview architecture
+// ============================================================
+function drawOverview() {
+  const c = document.getElementById('overviewCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  // Cluster boundary
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(20, 20, 800, 480);
+  ctx.setLineDash([]);
+  label(ctx, 'Kubernetes Cluster · namespace: migration', 180, 40, '#94a3b8', 13, true);
+
+  // CLI
+  roundRect(ctx, 50, 80, 140, 60, 8, '#1e3a8a', '#60a5fa');
+  label(ctx, 'CLI / UI', 120, 102, '#dbeafe', 15, true);
+  label(ctx, 'kubectl · REST', 120, 122, '#93c5fd', 11);
+
+  // Controller
+  roundRect(ctx, 280, 70, 220, 100, 10, '#312e81', '#a78bfa');
+  label(ctx, 'Migration Controller', 390, 94, '#e9d5ff', 15, true);
+  label(ctx, '(Deployment)', 390, 114, '#c4b5fd', 11);
+  label(ctx, '• REST API', 390, 134, '#ddd6fe', 11);
+  label(ctx, '• Creates Jobs · Writes PG', 390, 152, '#ddd6fe', 11);
+
+  arrow(ctx, 190, 110, 280, 120, '#60a5fa');
+
+  // Jobs
+  const jobX = [80, 300, 520];
+  jobX.forEach((x, i) => {
+    roundRect(ctx, x, 230, 180, 110, 8, '#064e3b', '#34d399');
+    label(ctx, 'K8s Job ' + (i + 1), x + 90, 252, '#d1fae5', 14, true);
+    label(ctx, '(Pod)', x + 90, 270, '#6ee7b7', 10);
+    label(ctx, 'Analyze → Plan →', x + 90, 294, '#a7f3d0', 10);
+    label(ctx, 'Generate → Validate', x + 90, 310, '#a7f3d0', 10);
+    label(ctx, '→ Publish', x + 90, 326, '#a7f3d0', 10);
+    arrow(ctx, 390, 170, x + 90, 230, '#a78bfa');
+  });
+
+  // Infra services
+  roundRect(ctx, 620, 70, 180, 60, 8, '#422006', '#fbbf24');
+  label(ctx, 'ConfigMap', 710, 90, '#fef3c7', 13, true);
+  label(ctx, 'prompts · agent defs', 710, 110, '#fde68a', 10);
+
+  roundRect(ctx, 620, 145, 180, 60, 8, '#450a0a', '#f87171');
+  label(ctx, 'Secrets', 710, 165, '#fee2e2', 13, true);
+  label(ctx, 'API keys · GH token', 710, 185, '#fca5a5', 10);
+
+  roundRect(ctx, 620, 230, 180, 60, 8, '#1e3a8a', '#60a5fa');
+  label(ctx, 'Postgres', 710, 250, '#dbeafe', 13, true);
+  label(ctx, 'historical ledger', 710, 270, '#93c5fd', 10);
+
+  roundRect(ctx, 620, 305, 180, 60, 8, '#312e81', '#a78bfa');
+  label(ctx, 'MCP Server', 710, 325, '#e9d5ff', 13, true);
+  label(ctx, 'RAG · validation', 710, 345, '#c4b5fd', 10);
+
+  // Flows
+  arrow(ctx, 500, 130, 620, 255, '#60a5fa', 'write on complete');
+  arrow(ctx, 610, 285, 620, 335, '#a78bfa');
+
+  // Anthropic API external
+  roundRect(ctx, 320, 420, 220, 50, 8, '#1e293b', '#64748b');
+  label(ctx, 'Anthropic API', 430, 438, '#cbd5e1', 13, true);
+  label(ctx, '(external)', 430, 456, '#94a3b8', 10);
+  arrow(ctx, 250, 340, 420, 420, '#64748b', 'Claude API', true);
+}
+
+// ============================================================
+// Figure 2 — Pod pipeline (inside the container)
+// ============================================================
+function drawPod() {
+  const c = document.getElementById('podCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = '#475569';
+  ctx.strokeRect(20, 20, 800, 480);
+  ctx.setLineDash([]);
+  label(ctx, 'K8s Pod · emptyDir /workspace · SA: migration-runner', 260, 40, '#94a3b8', 12, true);
+
+  // initContainer
+  roundRect(ctx, 50, 80, 180, 55, 8, '#422006', '#fbbf24');
+  label(ctx, 'initContainer', 140, 100, '#fef3c7', 14, true);
+  label(ctx, 'git clone + checkout', 140, 118, '#fde68a', 10);
+  arrow(ctx, 230, 107, 290, 107, '#fbbf24');
+
+  // Main container
+  roundRect(ctx, 290, 65, 520, 400, 10, '#1e293b', '#64748b');
+  label(ctx, 'main container · agent-runner', 420, 85, '#cbd5e1', 12, true);
+
+  const phases = [
+    { x: 320, y: 110, l: 'Analyze',  o: 'context.md',    c: '#60a5fa', bg: '#1e3a8a' },
+    { x: 320, y: 190, l: 'Plan',     o: 'plan.md',       c: '#a78bfa', bg: '#312e81' },
+    { x: 320, y: 270, l: 'Generate', o: 'Go files',      c: '#fbbf24', bg: '#422006' },
+    { x: 320, y: 350, l: 'Validate', o: 'validation.md', c: '#34d399', bg: '#064e3b' }
+  ];
+  phases.forEach(p => {
+    roundRect(ctx, p.x, p.y, 160, 50, 8, p.bg, p.c);
+    label(ctx, p.l, p.x + 80, p.y + 20, '#f1f5f9', 15, true);
+    label(ctx, '→ ' + p.o, p.x + 80, p.y + 37, '#cbd5e1', 10);
+  });
+  for (let i = 0; i < phases.length - 1; i++) {
+    arrow(ctx, phases[i].x + 80, phases[i].y + 50, phases[i + 1].x + 80, phases[i + 1].y, '#94a3b8');
+  }
+
+  // Validate retry loop back to Generate
+  ctx.strokeStyle = '#f87171';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 3]);
+  ctx.beginPath();
+  ctx.moveTo(480, 375);
+  ctx.lineTo(510, 375);
+  ctx.lineTo(510, 295);
+  ctx.lineTo(480, 295);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f87171';
+  ctx.beginPath();
+  ctx.moveTo(480, 295);
+  ctx.lineTo(490, 290);
+  ctx.lineTo(490, 300);
+  ctx.closePath();
+  ctx.fill();
+  label(ctx, 'fail: retry', 535, 335, '#f87171', 10);
+
+  // Publish
+  roundRect(ctx, 560, 240, 180, 50, 8, '#450a0a', '#f87171');
+  label(ctx, 'Publish', 650, 258, '#fee2e2', 15, true);
+  label(ctx, 'commit · push · PR', 650, 276, '#fca5a5', 10);
+  arrow(ctx, 480, 375, 650, 290, '#34d399', 'pass');
+
+  // PR URL
+  roundRect(ctx, 580, 330, 140, 40, 6, '#1e3a8a', '#60a5fa');
+  label(ctx, '→ PR URL', 650, 350, '#dbeafe', 14, true);
+  arrow(ctx, 650, 290, 650, 330, '#60a5fa');
+
+  // MCP sidebar
+  roundRect(ctx, 560, 395, 230, 60, 8, '#312e81', '#a78bfa');
+  label(ctx, 'Shared MCP Server', 675, 412, '#e9d5ff', 13, true);
+  label(ctx, 'RAG · validation tools', 675, 432, '#c4b5fd', 10);
+  label(ctx, '(called by agents via SDK)', 675, 448, '#a78bfa', 10);
+}
+
+// ============================================================
+// Figure 3 — End-to-end flowchart
+// ============================================================
+function drawFlow() {
+  const c = document.getElementById('flowCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  const steps = [
+    { label: '1. Trigger',               sub: 'migrate --target ...', color: '#60a5fa', bg: '#1e3a8a' },
+    { label: '2. Create K8s Job',        sub: 'controller → Job manifest + PG PENDING', color: '#a78bfa', bg: '#312e81' },
+    { label: '3. Provision',             sub: 'initContainer: git clone + checkout', color: '#fbbf24', bg: '#422006' },
+    { label: '4. Execute pipeline',      sub: 'Analyze → Plan → Generate → Validate', color: '#34d399', bg: '#064e3b' },
+    { label: '5. Produce PR',            sub: 'Publish: commit · push · open PR', color: '#f87171', bg: '#450a0a' },
+    { label: '6. Notify',                sub: 'controller writes PG + Slack/GH', color: '#22d3ee', bg: '#155e75' }
+  ];
+
+  const w = 420, h = 60, x = 210;
+  steps.forEach((s, i) => {
+    const y = 30 + i * 105;
+    roundRect(ctx, x, y, w, h, 10, s.bg, s.color);
+    label(ctx, s.label, x + w / 2, y + 22, '#f1f5f9', 15, true);
+    label(ctx, s.sub, x + w / 2, y + 44, '#cbd5e1', 11);
+    if (i < steps.length - 1) {
+      arrow(ctx, x + w / 2, y + h, x + w / 2, y + 105, '#64748b');
+    }
+  });
+
+  // Retry side-branch on step 4
+  roundRect(ctx, 50, 320, 140, 60, 8, '#450a0a', '#f87171');
+  label(ctx, 'Validate fails', 120, 340, '#fee2e2', 12, true);
+  label(ctx, '→ retry Generate', 120, 358, '#fca5a5', 10);
+  label(ctx, '(up to 2× cross-phase)', 120, 372, '#fca5a5', 9);
+  arrow(ctx, 210, 350, 190, 350, '#f87171');
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = '#f87171';
+  ctx.beginPath();
+  ctx.moveTo(120, 320);
+  ctx.lineTo(120, 290);
+  ctx.lineTo(210, 290);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // K8s backoffLimit side-branch
+  roundRect(ctx, 640, 320, 140, 60, 8, '#422006', '#fbbf24');
+  label(ctx, 'Pod crashes', 710, 340, '#fef3c7', 12, true);
+  label(ctx, '→ K8s backoffLimit', 710, 358, '#fde68a', 10);
+  label(ctx, '(Pod retry on new node)', 710, 372, '#fde68a', 9);
+  arrow(ctx, 640, 350, 630, 350, '#fbbf24');
+
+  // Needs-review terminal state
+  roundRect(ctx, 210, 640, 420, 50, 10, '#1e293b', '#94a3b8');
+  label(ctx, 'If all retries exhausted → label: needs-review', 420, 665, '#cbd5e1', 13, true);
+  arrow(ctx, 420, 610, 420, 640, '#94a3b8', 'escalate');
+}
+
+// ============================================================
+// Figure 4 — Three agentic loops nested
+// ============================================================
+function drawLoops() {
+  const c = document.getElementById('loopCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  // Level 3 outer
+  roundRect(ctx, 20, 20, 800, 520, 14, '#1a0a0a', '#f87171');
+  label(ctx, 'Level 3 · Cross-Phase Retry  (controlled by agent-runner · max 2)', 280, 42, '#f87171', 13, true);
+
+  // Level 2
+  roundRect(ctx, 60, 70, 720, 380, 12, '#1a0a2e', '#a78bfa');
+  label(ctx, 'Level 2 · Phase Sequence  (controlled by agent-runner)', 280, 92, '#a78bfa', 13, true);
+
+  // Phase boxes
+  const phases = [
+    { x: 90,  l: 'Analyze',  c: '#60a5fa' },
+    { x: 230, l: 'Plan',     c: '#a78bfa' },
+    { x: 370, l: 'Generate', c: '#fbbf24' },
+    { x: 510, l: 'Validate', c: '#34d399' },
+    { x: 650, l: 'Publish',  c: '#f87171' }
+  ];
+  phases.forEach((p, i) => {
+    roundRect(ctx, p.x, 115, 120, 36, 6, '#0f172a', p.c);
+    label(ctx, p.l, p.x + 60, 133, '#f1f5f9', 12, true);
+    if (i < phases.length - 1) {
+      arrow(ctx, p.x + 120, 133, p.x + 140, 133, '#cbd5e1');
+    }
+  });
+
+  // Level 1 inner
+  roundRect(ctx, 130, 180, 580, 240, 10, '#041a12', '#34d399');
+  label(ctx, 'Level 1 · Agent SDK Tool Loop  (built-in · runs inside every phase)', 420, 205, '#34d399', 13, true);
+  label(ctx, 'Exits when Claude returns a final message with no tool call', 420, 225, '#6ee7b7', 10);
+
+  // Think-Act-Observe cycle inside level 1
+  const cx = 420, cy = 320, R = 75;
+  const nodes = [
+    { a: -Math.PI/2,  l: 'Think', c: '#60a5fa' },
+    { a: Math.PI/6,   l: 'Act\n(tool call)', c: '#a78bfa' },
+    { a: 5*Math.PI/6, l: 'Observe\n(result)', c: '#fbbf24' }
+  ];
+  nodes.forEach(n => {
+    const x = cx + R * Math.cos(n.a);
+    const y = cy + R * Math.sin(n.a);
+    roundRect(ctx, x - 55, y - 22, 110, 44, 22, '#0b1220', n.c);
+    const lines = n.l.split('\n');
+    lines.forEach((ln, idx) => {
+      label(ctx, ln, x, y - 8 + idx * 14, '#f1f5f9', lines.length > 1 ? 11 : 13, true);
+    });
+  });
+
+  // Circular arrows between think → act → observe → think
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R + 15, 0, Math.PI * 2);
+  ctx.stroke();
+  // arrowheads on the circle
+  [[-0.8, '#a78bfa'], [2.5, '#fbbf24'], [4.1, '#60a5fa']].forEach(pair => {
+    const [a, color] = pair;
+    const ax = cx + (R + 15) * Math.cos(a);
+    const ay = cy + (R + 15) * Math.sin(a);
+    const tangent = a + Math.PI / 2;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax - 8 * Math.cos(tangent - 0.4), ay - 8 * Math.sin(tangent - 0.4));
+    ctx.lineTo(ax - 8 * Math.cos(tangent + 0.4), ay - 8 * Math.sin(tangent + 0.4));
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  // Level 3 retry arrow
+  roundRect(ctx, 180, 470, 440, 50, 8, '#2a0808', '#f87171');
+  label(ctx, 'On Validate failure: Generate (with errors) → Validate → retry', 400, 488, '#fecaca', 12, true);
+  label(ctx, 'If still failing → label needs-review and escalate', 400, 506, '#fca5a5', 10);
+  arrow(ctx, 570, 150, 550, 470, '#f87171', '', true);
+}
+
+// ============================================================
+// Figure 5 — LoRA training pipeline
+// ============================================================
+function drawLora() {
+  const c = document.getElementById('loraCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  const stages = [
+    { l: '1. Extract',  s: 'Parse repo →\ninstruction pairs', c: '#60a5fa', bg: '#1e3a8a' },
+    { l: '2. Format',   s: 'Chat / instruction\nformat',      c: '#a78bfa', bg: '#312e81' },
+    { l: '3. Train',    s: 'QLoRA fine-tune\nQwen 14B · A100', c: '#fbbf24', bg: '#422006' },
+    { l: '4. Evaluate', s: 'Compile + test\nstyle match',     c: '#34d399', bg: '#064e3b' },
+    { l: '5. Publish',  s: 'Push adapter\n(~50–100 MB)',       c: '#f87171', bg: '#450a0a' }
+  ];
+  const w = 150, h = 120, gap = 12;
+  const total = stages.length * w + (stages.length - 1) * gap;
+  const startX = (c.width - total) / 2;
+  stages.forEach((st, i) => {
+    const x = startX + i * (w + gap);
+    roundRect(ctx, x, 60, w, h, 10, st.bg, st.c);
+    label(ctx, st.l, x + w / 2, 82, '#f1f5f9', 14, true);
+    const lines = st.s.split('\n');
+    lines.forEach((ln, idx) => label(ctx, ln, x + w / 2, 110 + idx * 16, '#cbd5e1', 11));
+    if (i < stages.length - 1) {
+      arrow(ctx, x + w, 120, x + w + gap, 120, '#94a3b8');
+    }
+  });
+  label(ctx, 'Training Pipeline (K8s Job, manual or scheduled)', c.width / 2, 30, '#94a3b8', 13, true);
+  label(ctx, 'Base model is never modified — the LoRA adapter overlays it and can be versioned / rolled back.',
+        c.width / 2, 210, '#64748b', 11);
+}
+
+function drawAll() {
+  drawOverview();
+  drawPod();
+  drawFlow();
+  drawLoops();
+  drawLora();
+}
+
+window.addEventListener('load', drawAll);
+window.addEventListener('resize', drawAll);
+</script>
+
+</body>
+</html>
