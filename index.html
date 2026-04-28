@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GraphQL Python → Go Migration Agent — Architecture</title>
+<title>Reddit-Scale Code Migration with Multi-Agent AI — Architecture</title>
 <style>
   :root {
     --bg: #0f172a;
@@ -233,10 +233,10 @@
   .loop-badge.l2 { background: #312e81; color: var(--purple); }
   .loop-badge.l3 { background: #450a0a; color: var(--red); }
 
-  /* Reddit impact / opening section */
+  /* Opening / context section */
   .context-banner {
     background:
-      radial-gradient(circle at 0% 0%, rgba(255, 69, 0, 0.10) 0%, transparent 45%),
+      radial-gradient(circle at 0% 0%, rgba(34, 211, 238, 0.10) 0%, transparent 45%),
       radial-gradient(circle at 100% 100%, rgba(167, 139, 250, 0.10) 0%, transparent 45%),
       linear-gradient(135deg, #1e293b 0%, #1a1535 100%);
     border: 1px solid var(--border);
@@ -251,7 +251,7 @@
     position: absolute;
     top: 0; left: 0;
     width: 5px; height: 100%;
-    background: linear-gradient(180deg, #FF4500 0%, var(--blue) 50%, var(--purple) 100%);
+    background: linear-gradient(180deg, var(--cyan) 0%, var(--blue) 50%, var(--purple) 100%);
   }
   .context-eyebrow {
     display: inline-flex;
@@ -268,8 +268,8 @@
     content: '';
     width: 10px; height: 10px;
     border-radius: 50%;
-    background: #FF4500;
-    box-shadow: 0 0 12px #FF4500, 0 0 4px #FF4500;
+    background: var(--cyan);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.7), 0 0 4px rgba(34, 211, 238, 0.9);
   }
   .context-banner h2.context-headline {
     font-size: 2em;
@@ -487,7 +487,7 @@
   }
   .impact-tile .num-big.green { background: linear-gradient(90deg, var(--green), var(--cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .impact-tile .num-big.amber { background: linear-gradient(90deg, var(--amber), #f97316); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  .impact-tile .num-big.red { background: linear-gradient(90deg, var(--red), var(--purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .impact-tile .num-big.red { background: linear-gradient(90deg, var(--cyan), var(--purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .impact-tile .label {
     color: var(--muted);
     font-size: 0.86em;
@@ -533,58 +533,36 @@
 <article>
 
 <header>
-  <h1>Agentic AI for Code Migration</h1>
-  <p class="subtitle">A multi-agent software workflow that takes a Python GraphQL resolver and ships a reviewed Go pull request — analyze, plan, generate, validate, publish — with self-correction at every step.</p>
+  <h1>Reddit-Scale Code Migration with Multi-Agent AI</h1>
+  <p class="subtitle">A multi-agent system that re-platforms Reddit's GraphQL edge — <strong>40+ high-throughput services</strong>, Python → Go, autonomously. <em>Analyze · plan · generate · validate · publish</em> — self-correcting at every step.</p>
 </header>
 
 <!-- =========================================================== -->
 <section id="context">
 <div class="context-banner">
   <span class="context-eyebrow">Reddit · Backend / AI-Native Engineer</span>
-  <h2 class="context-headline">From an <em>18-month</em> manual rewrite to a <em>3-month</em> autonomous program.</h2>
+  <h2 class="context-headline">An <em>18-month</em> multi-team rewrite, compressed into a <em>3-month</em> autonomous program.</h2>
 
-  <div class="slide-grid">
+  <p class="context-lead"><strong>The problem.</strong> Reddit's GraphQL serves the read path for every <em>feed</em>, <em>post</em>, <em>comment</em>, and <em>notification</em> — fanning RPCs to dozens of downstream services at Reddit-scale traffic. Python resolvers were the throughput ceiling. The mandate: rewrite every resolver to Go across <strong>40+ services</strong>. The plan: <strong>18 months</strong> of manual, multi-team work.</p>
 
-    <div class="slide-card problem">
-      <div class="slide-tag">The Problem</div>
-      <h3>Python GraphQL was the platform's throughput ceiling.</h3>
-      <ul class="slide-bullets">
-        <li><strong>Critical-path surface.</strong> GraphQL serves the read path for every <em>feed</em>, <em>post</em>, <em>comment</em>, and <em>notification</em> in the product.</li>
-        <li><strong>Legacy Python resolvers</strong> were slow, hard to scale, and expensive to operate at Reddit traffic.</li>
-        <li><strong>Mandate:</strong> migrate <em>every</em> resolver to <strong>Go</strong> across <strong>40+ services</strong>.</li>
-        <li><strong>Original plan:</strong> an <strong>18-month, multi-team</strong> manual rewrite — slow, repetitive, error-prone.</li>
-      </ul>
+  <p class="context-lead"><strong>What I built.</strong> A multi-agent LLM system that owns the migration end to end — <code>migrate &lt;target&gt;</code> ships a reviewed PR. Five phase-isolated agents (<em>Analyze · Plan · Generate · Validate · Publish</em>), hybrid RAG over the monorepo, validation-driven self-correction, and a LoRA-fine-tuned coder for repo-consistent style. Designed and built end to end: controller, agents, MCP server, retrieval, evals, fine-tune, deployment, observability.</p>
+
+  <p class="context-lead"><strong>Why it works.</strong> <em>Phase isolation</em> — a fresh validator is a real adversarial check on the generator. <em>Three nested loops</em> — SDK tool loop, cross-phase retry, K8s backoff — each catches a different failure class. <em>Repo-aware retrieval</em> — RAG over our own code closes the gap from "compiles" to "looks like we wrote it."</p>
+
+  <div class="pipeline">
+    <div class="pipeline-label">The autonomous pipeline:</div>
+    <div class="pipeline-steps">
+      <div class="pipe-step"><span class="step-num">1</span><span class="step-name">Analyze</span><span class="step-desc">Python resolver &amp; schema deps</span></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="step-num">2</span><span class="step-name">Plan</span><span class="step-desc">Go implementation strategy</span></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="step-num">3</span><span class="step-name">Generate</span><span class="step-desc">Code matching repo conventions</span></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="step-num">4</span><span class="step-name">Validate</span><span class="step-desc">Build · lint · tests · schema · behavior</span></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="step-num">5</span><span class="step-name">Publish</span><span class="step-desc">Reviewed PR opened</span></div>
     </div>
-
-    <div class="slide-card solution">
-      <div class="slide-tag">My Solution</div>
-      <h3>A multi-agent LLM system that owns the migration end-to-end.</h3>
-      <ul class="slide-bullets">
-        <li><strong>Designed &amp; built from scratch</strong> — architecture, agents, MCP server, RAG, evals, fine-tuning loop.</li>
-        <li><strong>Fully autonomous</strong> — developer runs <code>migrate &lt;target&gt;</code>, system delivers a reviewed PR.</li>
-        <li><strong>Self-correcting</strong> — agents detect their own build / test / schema failures and fix them in-loop.</li>
-        <li><strong>Repo-aware</strong> — code generation grounded in real Go patterns from the monorepo, not generic LLM idioms.</li>
-      </ul>
-
-      <div class="pipeline">
-        <div class="pipeline-label">The autonomous pipeline:</div>
-        <div class="pipeline-steps">
-          <div class="pipe-step"><span class="step-num">1</span><span class="step-name">Analyze</span><span class="step-desc">Python resolver &amp; schema deps</span></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step"><span class="step-num">2</span><span class="step-name">Plan</span><span class="step-desc">Go implementation strategy</span></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step"><span class="step-num">3</span><span class="step-name">Generate</span><span class="step-desc">Code matching repo conventions</span></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step"><span class="step-num">4</span><span class="step-name">Validate</span><span class="step-desc">Build · lint · tests · schema · behavior</span></div>
-          <div class="pipe-arrow">→</div>
-          <div class="pipe-step"><span class="step-num">5</span><span class="step-name">Publish</span><span class="step-desc">Reviewed PR opened</span></div>
-        </div>
-      </div>
-    </div>
-
   </div>
-
-  <p class="tagline">The system below is what shipped. This presentation walks through the architecture from controller to PR.</p>
 
   <div class="impact-grid">
     <div class="impact-tile">
