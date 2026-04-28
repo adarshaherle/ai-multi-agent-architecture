@@ -69,6 +69,7 @@
     margin-bottom: 12px;
     background: linear-gradient(90deg, var(--blue), var(--purple));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .subtitle { color: var(--muted); font-size: 1.15em; margin-bottom: 40px; }
@@ -232,11 +233,277 @@
   .loop-badge.l2 { background: #312e81; color: var(--purple); }
   .loop-badge.l3 { background: #450a0a; color: var(--red); }
 
+  /* Reddit impact / opening section */
+  .context-banner {
+    background:
+      radial-gradient(circle at 0% 0%, rgba(255, 69, 0, 0.10) 0%, transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(167, 139, 250, 0.10) 0%, transparent 45%),
+      linear-gradient(135deg, #1e293b 0%, #1a1535 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 40px 32px;
+    margin: 0 0 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .context-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 5px; height: 100%;
+    background: linear-gradient(180deg, #FF4500 0%, var(--blue) 50%, var(--purple) 100%);
+  }
+  .context-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78em;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .context-eyebrow::before {
+    content: '';
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #FF4500;
+    box-shadow: 0 0 12px #FF4500, 0 0 4px #FF4500;
+  }
+  .context-banner h2.context-headline {
+    font-size: 2em;
+    line-height: 1.25;
+    margin: 0 0 22px;
+    padding: 0;
+    border: none;
+    color: var(--text);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .context-banner h2.context-headline em {
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-style: italic;
+    font-weight: 700;
+  }
+  .context-banner p.context-lead {
+    color: #d6deeb;
+    font-size: 1.02em;
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+  .context-banner p.tagline {
+    color: var(--muted);
+    font-size: 0.92em;
+    font-style: italic;
+    margin: 18px 0 0;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+
+  /* Slide-style problem / solution cards */
+  .slide-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin: 24px 0 4px;
+  }
+  .slide-card {
+    background: rgba(11, 18, 32, 0.55);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 26px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+  }
+  .slide-card.problem::before { background: linear-gradient(90deg, var(--red), var(--amber)); }
+  .slide-card.solution::before { background: linear-gradient(90deg, var(--blue), var(--purple), var(--green)); }
+  .slide-tag {
+    display: inline-block;
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .slide-card.problem .slide-tag { background: rgba(248, 113, 113, 0.12); color: var(--red); }
+  .slide-card.solution .slide-tag { background: rgba(96, 165, 250, 0.12); color: var(--blue); }
+  .slide-card h3 {
+    margin: 0 0 14px;
+    font-size: 1.2em;
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .slide-card.problem h3 { color: #fca5a5; }
+  .slide-card.solution h3 { color: #c7d2fe; }
+
+  ul.slide-bullets {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  ul.slide-bullets li {
+    color: #d6deeb;
+    font-size: 0.95em;
+    line-height: 1.55;
+    padding: 6px 0 6px 22px;
+    margin-bottom: 4px;
+    position: relative;
+  }
+  ul.slide-bullets li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 14px;
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+  .slide-card.problem ul.slide-bullets li::before {
+    background: var(--red);
+  }
+  .slide-card.solution ul.slide-bullets li::before {
+    background: var(--blue);
+  }
+  ul.slide-bullets li strong { color: var(--amber); }
+
+  /* Pipeline visualization inside the solution card */
+  .pipeline {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+  }
+  .pipeline-label {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+    color: var(--dim);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .pipeline-steps {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pipe-step {
+    flex: 1 1 130px;
+    min-width: 130px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .pipe-step:hover {
+    border-color: var(--blue);
+    transform: translateY(-2px);
+  }
+  .pipe-step .step-num {
+    font-size: 0.65em;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 1px;
+  }
+  .pipe-step .step-name {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .pipe-step .step-desc {
+    font-size: 0.78em;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .pipe-arrow {
+    align-self: center;
+    color: var(--dim);
+    font-size: 1.1em;
+    font-weight: 700;
+  }
+
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+    margin: 28px 0 0;
+  }
+  .impact-tile {
+    background: rgba(11, 18, 32, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px 20px;
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .impact-tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 30%);
+  }
+  .impact-tile:hover {
+    transform: translateY(-3px);
+    border-color: var(--blue);
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.15);
+  }
+  .impact-tile .tile-eyebrow {
+    font-size: 0.68em;
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+    color: var(--dim);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .impact-tile .num-big {
+    font-size: 2.5em;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .impact-tile .num-big.green { background: linear-gradient(90deg, var(--green), var(--cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .impact-tile .num-big.amber { background: linear-gradient(90deg, var(--amber), #f97316); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .impact-tile .num-big.red { background: linear-gradient(90deg, var(--red), var(--purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .impact-tile .label {
+    color: var(--muted);
+    font-size: 0.86em;
+    line-height: 1.45;
+  }
+  .impact-tile .label strong { color: var(--amber); }
+
   /* Responsive */
   @media (max-width: 900px) {
     .container { grid-template-columns: 1fr; }
     nav.toc { display: none; }
     article { padding: 30px 20px; }
+    .context-banner { padding: 26px 22px; }
+    .context-banner h2.context-headline { font-size: 1.5em; }
+    .impact-tile .num-big { font-size: 2em; }
+    .pipe-arrow { display: none; }
   }
 </style>
 </head>
@@ -246,27 +513,103 @@
 
 <nav class="toc">
   <h4>Contents</h4>
+  <a href="#context">Project Context</a>
   <a href="#overview">1. Architecture Overview</a>
   <a href="#workflow">2. End-to-End Workflow</a>
   <a href="#agents">3. Agent Interaction Model</a>
   <a href="#loops">4. Agentic Loops</a>
   <a href="#mcp">5. MCP Server</a>
-  <a href="#finetune">6. Fine-Tuned Model</a>
-  <a href="#deployment">7. Deployment</a>
-  <a href="#state">8. State &amp; Memory</a>
-  <a href="#decisions">9. Design Decisions</a>
-  <a href="#rbac">10. RBAC &amp; Least Privilege</a>
-  <a href="#observability">11. Observability</a>
-  <a href="#cost">12. Cost Controls</a>
-  <a href="#hitl">13. Human-in-the-Loop</a>
+  <a href="#rag">6. RAG Pipeline</a>
+  <a href="#finetune">7. Fine-Tuned Model</a>
+  <a href="#deployment">8. Deployment</a>
+  <a href="#state">9. State &amp; Memory</a>
+  <a href="#decisions">10. Design Decisions</a>
+  <a href="#rbac">11. RBAC &amp; Least Privilege</a>
+  <a href="#observability">12. Observability</a>
+  <a href="#cost">13. Cost Controls</a>
+  <a href="#hitl">14. Human-in-the-Loop</a>
 </nav>
 
 <article>
 
 <header>
-  <h1>GraphQL Python → Go Migration Agent</h1>
-  <p class="subtitle">A hybrid Kubernetes + Postgres pipeline where each migration runs as an isolated K8s Job Pod, orchestrated by Claude via the Agent SDK.</p>
+  <h1>Agentic AI for Code Migration</h1>
+  <p class="subtitle">A multi-agent software workflow that takes a Python GraphQL resolver and ships a reviewed Go pull request — analyze, plan, generate, validate, publish — with self-correction at every step.</p>
 </header>
+
+<!-- =========================================================== -->
+<section id="context">
+<div class="context-banner">
+  <span class="context-eyebrow">Reddit · Backend / AI-Native Engineer</span>
+  <h2 class="context-headline">From an <em>18-month</em> manual rewrite to a <em>3-month</em> autonomous program.</h2>
+
+  <div class="slide-grid">
+
+    <div class="slide-card problem">
+      <div class="slide-tag">The Problem</div>
+      <h3>Python GraphQL was the platform's throughput ceiling.</h3>
+      <ul class="slide-bullets">
+        <li><strong>Critical-path surface.</strong> GraphQL serves the read path for every <em>feed</em>, <em>post</em>, <em>comment</em>, and <em>notification</em> in the product.</li>
+        <li><strong>Legacy Python resolvers</strong> were slow, hard to scale, and expensive to operate at Reddit traffic.</li>
+        <li><strong>Mandate:</strong> migrate <em>every</em> resolver to <strong>Go</strong> across <strong>40+ services</strong>.</li>
+        <li><strong>Original plan:</strong> an <strong>18-month, multi-team</strong> manual rewrite — slow, repetitive, error-prone.</li>
+      </ul>
+    </div>
+
+    <div class="slide-card solution">
+      <div class="slide-tag">My Solution</div>
+      <h3>A multi-agent LLM system that owns the migration end-to-end.</h3>
+      <ul class="slide-bullets">
+        <li><strong>Designed &amp; built from scratch</strong> — architecture, agents, MCP server, RAG, evals, fine-tuning loop.</li>
+        <li><strong>Fully autonomous</strong> — developer runs <code>migrate &lt;target&gt;</code>, system delivers a reviewed PR.</li>
+        <li><strong>Self-correcting</strong> — agents detect their own build / test / schema failures and fix them in-loop.</li>
+        <li><strong>Repo-aware</strong> — code generation grounded in real Go patterns from the monorepo, not generic LLM idioms.</li>
+      </ul>
+
+      <div class="pipeline">
+        <div class="pipeline-label">The autonomous pipeline:</div>
+        <div class="pipeline-steps">
+          <div class="pipe-step"><span class="step-num">1</span><span class="step-name">Analyze</span><span class="step-desc">Python resolver &amp; schema deps</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step"><span class="step-num">2</span><span class="step-name">Plan</span><span class="step-desc">Go implementation strategy</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step"><span class="step-num">3</span><span class="step-name">Generate</span><span class="step-desc">Code matching repo conventions</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step"><span class="step-num">4</span><span class="step-name">Validate</span><span class="step-desc">Build · lint · tests · schema · behavior</span></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step"><span class="step-num">5</span><span class="step-name">Publish</span><span class="step-desc">Reviewed PR opened</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="tagline">The system below is what shipped. This presentation walks through the architecture from controller to PR.</p>
+
+  <div class="impact-grid">
+    <div class="impact-tile">
+      <div class="tile-eyebrow">Scope</div>
+      <div class="num-big">40+</div>
+      <div class="label">services migrated across the GraphQL stack</div>
+    </div>
+    <div class="impact-tile">
+      <div class="tile-eyebrow">Quality</div>
+      <div class="num-big green">~80%</div>
+      <div class="label">migrations land cleanly with <em>zero</em> manual edits</div>
+    </div>
+    <div class="impact-tile">
+      <div class="tile-eyebrow">Leverage</div>
+      <div class="num-big amber">~70%</div>
+      <div class="label">reduction in engineer effort per migration</div>
+    </div>
+    <div class="impact-tile">
+      <div class="tile-eyebrow">Velocity</div>
+      <div class="num-big red">18mo → &lt;3mo</div>
+      <div class="label">program timeline compressed by <strong>6×</strong></div>
+    </div>
+  </div>
+</div>
+</section>
 
 <!-- =========================================================== -->
 <section id="overview">
@@ -622,14 +965,8 @@ if not success:
 
   7. Fix issues, re-run until green</code></pre>
 
-<h3>RAG pipeline</h3>
-<p>A nightly (or on-push) CronJob:</p>
-<ol>
-  <li><strong>Parse</strong> — Walk the monorepo. Extract GraphQL types, Python classes/functions, Go functions/structs.</li>
-  <li><strong>Chunk</strong> — One chunk per type, method, or function, each with metadata.</li>
-  <li><strong>Embed</strong> — Generate vector embeddings.</li>
-  <li><strong>Store</strong> — Write to a PersistentVolume mounted by the MCP server (~50–200MB for a large monorepo).</li>
-</ol>
+<h3>RAG index</h3>
+<p>The RAG tools above are backed by a vector index that the MCP server reads at query time. The full pipeline — parse, chunk, embed, store, refresh — and vector-DB choice are covered in the dedicated <a href="#rag">§6 RAG Pipeline</a> section.</p>
 
 <h3>Deployment manifest</h3>
 <span class="code-label">k8s · migration-mcp Deployment</span>
@@ -722,8 +1059,244 @@ run_agent("publish",  tools=[git, github_cli],
 </section>
 
 <!-- =========================================================== -->
+<section id="rag">
+<h2><span class="num">6.</span>RAG Pipeline</h2>
+
+<p class="lead">The RAG tools exposed by the MCP server (<code>search_schemas</code>, <code>find_go_patterns</code>, <code>get_resolver</code>, <code>find_similar_migrations</code>) are only as good as the index behind them. This section is the <strong>production story</strong> for that index: how source code becomes retrievable context, what tradeoffs we made, and how it stays fresh as the monorepo moves underneath us.</p>
+
+<div class="callout">
+  <p><strong>Why RAG at all?</strong> The monorepo is &gt;3M LOC. We can't fit it in a context window, and we don't want generic LLM Go idioms — we want the repo's <em>own</em> patterns: how <em>this</em> team writes resolvers, handles errors, registers schemas, wires tracing. RAG is the bridge between "Claude knows Go" and "Claude knows <em>our</em> Go."</p>
+</div>
+
+<h3>Pipeline at a glance</h3>
+
+<div class="diagram">
+  <canvas id="ragCanvas" width="840" height="320"></canvas>
+  <div class="caption">Figure 5 — RAG pipeline: Parse → Chunk → Embed → Store (Vector DB) → Refresh. Runs as a K8s CronJob; the MCP server reads the index at query time.</div>
+</div>
+
+<div class="phase-grid">
+
+  <div class="phase-box p1">
+    <span class="tag">Phase 1</span>
+    <h3>Parse</h3>
+    <dl>
+      <dt>What</dt>
+      <dd>Walk the monorepo with language-aware parsers — <code>tree-sitter</code> for Go/Python, <code>graphql-core</code> for SDL.</dd>
+      <dt>Extracts</dt>
+      <dd>Go functions, structs, interfaces, methods; Python classes &amp; resolver functions; GraphQL types, fields, directives.</dd>
+      <dt>Why AST, not regex</dt>
+      <dd>We need clean semantic boundaries. Regex chunking splits a function body across two chunks and the LLM gets garbage.</dd>
+      <dt>Output</dt>
+      <dd>A stream of <code>Symbol</code> records: <code>{kind, name, file, span, signature, docstring, body, imports, refs}</code>.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p2">
+    <span class="tag">Phase 2</span>
+    <h3>Chunk</h3>
+    <dl>
+      <dt>Strategy</dt>
+      <dd><strong>Symbol-level chunks</strong>, not token-window chunks. One chunk = one resolver / one type / one struct + its methods.</dd>
+      <dt>Size guard</dt>
+      <dd>If a symbol exceeds ~1,500 tokens, split on inner blocks but keep the signature and docstring duplicated as a header in each piece.</dd>
+      <dt>Metadata per chunk</dt>
+      <dd><code>language</code>, <code>service</code>, <code>package</code>, <code>kind</code>, <code>graphql_type</code>, <code>last_modified</code>, <code>commit_sha</code>, <code>linked_schema_path</code>.</dd>
+      <dt>Why it matters</dt>
+      <dd>Filter pushdown at retrieval time (<em>"only Go resolvers in <code>pkg/payments</code>"</em>) is cheap and dramatic for precision.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p3">
+    <span class="tag">Phase 3</span>
+    <h3>Embed</h3>
+    <dl>
+      <dt>Model</dt>
+      <dd><code>voyage-code-3</code> (1024-dim) — code-specialized, beats general-purpose embedders on code retrieval. Fallback: <code>text-embedding-3-large</code>.</dd>
+      <dt>Hybrid signal</dt>
+      <dd>Compute <strong>BM25</strong> over the same chunks alongside vectors. We retrieve via dense+sparse fusion (RRF) — vectors miss exact identifiers, BM25 catches them.</dd>
+      <dt>What gets embedded</dt>
+      <dd>Signature + docstring + body, with the file path and symbol kind prepended as a tiny pseudo-header. The path tokens carry real signal.</dd>
+      <dt>Throughput</dt>
+      <dd>Batched at 128 chunks/request, async; full-repo cold build ≈ 12 min, incremental refresh &lt; 90 s.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p4">
+    <span class="tag">Phase 4</span>
+    <h3>Store</h3>
+    <dl>
+      <dt>Vector DB</dt>
+      <dd><strong>Pinecone</strong> (serverless) in production — managed, namespace-per-language, metadata filters, sub-100ms p99.</dd>
+      <dt>Index layout</dt>
+      <dd>One index, three namespaces: <code>go</code>, <code>python</code>, <code>graphql</code>. Each chunk keyed by <code>{repo}:{path}:{symbol}:{sha}</code>.</dd>
+      <dt>Sparse companion</dt>
+      <dd>BM25 lives in OpenSearch (already used by infra). MCP fans out to both and fuses results via RRF.</dd>
+      <dt>Why not pgvector</dt>
+      <dd>We use Postgres only as a ledger. pgvector works fine up to ~1M chunks but ops burden (HNSW tuning, IVFFlat rebuilds, replica lag) wasn't worth it given Pinecone's price at our scale.</dd>
+    </dl>
+  </div>
+
+  <div class="phase-box p5">
+    <span class="tag">Phase 5</span>
+    <h3>Refresh</h3>
+    <dl>
+      <dt>Triggers</dt>
+      <dd>(a) GitHub <code>push</code> webhook to <code>main</code> → incremental job per changed file; (b) nightly full reconcile; (c) on-demand <code>migrate --reindex</code>.</dd>
+      <dt>Diff strategy</dt>
+      <dd>Compare current commit's symbol map vs. last indexed <code>commit_sha</code>. Re-embed only added/changed symbols; tombstone deleted ones.</dd>
+      <dt>Atomicity</dt>
+      <dd>Upserts use <code>{path:symbol}</code> as the primary key, so re-runs are idempotent. Stale tombstones swept nightly.</dd>
+      <dt>SLA</dt>
+      <dd>P95 freshness lag &lt; 5 min after merge to <code>main</code>. We page if it crosses 30 min.</dd>
+    </dl>
+  </div>
+
+</div>
+
+<h3>Vector DB choice — what we evaluated</h3>
+
+<table>
+  <thead><tr><th>Option</th><th>Strengths</th><th>Why we did / didn't pick it</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Pinecone</strong> (serverless)</td><td>Fully managed, metadata filters, hybrid (dense + sparse) native, sub-100ms p99, scales without ops</td><td><strong>Production choice.</strong> Zero infra burden, predictable cost at our chunk count (~400k), namespaces map cleanly to language splits.</td></tr>
+    <tr><td><strong>Weaviate</strong></td><td>OSS + managed, modules for hybrid + reranking, multi-tenancy, GraphQL API</td><td>Strong runner-up. Picked Pinecone for ops simplicity; would revisit if we needed self-hosted for compliance.</td></tr>
+    <tr><td><strong>Qdrant</strong></td><td>Rust core, excellent filter performance, OSS, payload index, distributed mode</td><td>Best self-hosted option we benchmarked. Held in reserve as a migration target if Pinecone pricing changes.</td></tr>
+    <tr><td><strong>pgvector</strong></td><td>Lives in the Postgres we already run, transactional with the ledger, zero new infra</td><td>Fine for prototypes. Skipped: HNSW tuning, recall vs latency tradeoffs, and replica behavior become a real ops job past ~500k chunks.</td></tr>
+    <tr><td><strong>Chroma</strong></td><td>Dead-simple Python API, great for local dev</td><td>Used in CI / local dev only — single-node, not a prod story.</td></tr>
+    <tr><td><strong>OpenSearch + k-NN</strong></td><td>Already in our stack for logs; native BM25 + vector</td><td>Hosts the <em>sparse</em> half of our hybrid retrieval. Not used for dense as primary — vector recall lagged Pinecone in our evals.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout green">
+  <p><strong>The decision in one sentence.</strong> Pinecone for dense + OpenSearch for sparse, fused with Reciprocal Rank Fusion at the MCP server. We get hybrid retrieval without standing up new infra and keep a clean exit path to Qdrant if cost or data-residency forces our hand.</p>
+</div>
+
+<h3>Retrieval at query time</h3>
+
+<span class="code-label">MCP server · find_go_patterns implementation sketch</span>
+<pre><code>def find_go_patterns(query: str, filters: dict, k: int = 8) -&gt; list[Chunk]:
+    # 1. Embed the query with the SAME model used at index time
+    qvec = voyage.embed(query, model="voyage-code-3", input_type="query")
+
+    # 2. Dense retrieval — Pinecone, namespace-scoped, metadata filtered
+    dense = pinecone.query(
+        namespace="go",
+        vector=qvec,
+        top_k=k * 4,
+        filter={"kind": {"$in": ["resolver", "method", "func"]},
+                "service": filters.get("service")},
+    )
+
+    # 3. Sparse retrieval — BM25 over the same chunks
+    sparse = opensearch.search(
+        index="repo-chunks-go",
+        query={"match": {"body": query}},
+        size=k * 4,
+    )
+
+    # 4. Reciprocal Rank Fusion — combine the two ranked lists
+    fused = rrf_merge(dense, sparse, k_const=60)
+
+    # 5. Cross-encoder rerank for the top of the fused list
+    reranked = cohere.rerank(query, fused[:32], model="rerank-3")
+
+    return reranked[:k]</code></pre>
+
+<p><strong>Why this shape.</strong> Dense alone misses exact-identifier queries (<code>OrderResolver</code>). Sparse alone misses paraphrases (<em>"resolver that paginates with cursor"</em>). RRF fuses their ranks without needing calibrated scores. The reranker is a small cross-encoder that pays off on the top-32 — we don't run it over thousands.</p>
+
+<h3>Evaluation — how we know it works</h3>
+
+<p>Retrieval quality is measured, not vibed. We maintain a <strong>golden set</strong> of ~250 (query, ideal_chunks) pairs — built from real past migrations and curated by reviewers.</p>
+
+<table>
+  <thead><tr><th>Metric</th><th>What it tells us</th><th>Target</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Recall@10</strong></td><td>Did we retrieve the right chunk at all?</td><td>&gt; 0.92</td></tr>
+    <tr><td><strong>nDCG@10</strong></td><td>Are good chunks ranked above noise?</td><td>&gt; 0.78</td></tr>
+    <tr><td><strong>MRR</strong></td><td>How fast does the first useful chunk appear?</td><td>&gt; 0.65</td></tr>
+    <tr><td><strong>End-to-end migration pass-rate</strong></td><td>Does better retrieval = better generated code? (north star)</td><td>monitored per release</td></tr>
+  </tbody>
+</table>
+
+<p>The eval suite runs on every embedder/index/prompt change in CI. We won't ship a retrieval change that drops Recall@10 by &gt;1pt without an explicit override.</p>
+
+<h3>Failure modes &amp; mitigations</h3>
+
+<table>
+  <thead><tr><th>Failure</th><th>Symptom</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>Index/code drift</td><td>Generated code references renamed symbols</td><td>Push-webhook incremental refresh + freshness SLO + commit_sha pinned per chunk</td></tr>
+    <tr><td>Embedder version skew</td><td>Query embeddings can't match index embeddings</td><td>Embedder version stamped on the index; mismatch refuses to serve and triggers rebuild</td></tr>
+    <tr><td>Long symbols overflow</td><td>Chunk truncated mid-function</td><td>Split on inner blocks, duplicate signature header, add <code>continued</code> marker</td></tr>
+    <tr><td>Hot-path queries hit Pinecone hard</td><td>Latency spikes, cost climb</td><td>LRU cache in MCP server keyed by <code>(query_hash, filters, k)</code> — TTL 10 min, ~40% hit rate observed</td></tr>
+    <tr><td>Poisoned retrieval (junk chunks rank high)</td><td>Generation copies dead code</td><td>Static filters: exclude <code>vendor/</code>, generated files, deprecated packages. Reranker further demotes.</td></tr>
+    <tr><td>Cold start for a new service</td><td>Recall tanks the first day</td><td>On-demand <code>migrate --reindex &lt;service&gt;</code> + nightly reconcile catch this within hours</td></tr>
+  </tbody>
+</table>
+
+<h3>Refresh job manifest</h3>
+
+<span class="code-label">k8s · rag-indexer CronJob (incremental + nightly)</span>
+<pre><code>apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rag-indexer-nightly
+  namespace: migration
+spec:
+  schedule: "0 7 * * *"          # 07:00 UTC nightly full reconcile
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: rag-indexer
+          restartPolicy: Never
+          containers:
+          - name: indexer
+            image: your-registry/rag-indexer:latest
+            args: ["--mode=reconcile", "--repo=/repo"]
+            env:
+            - name: PINECONE_API_KEY
+              valueFrom: { secretKeyRef: { name: rag-secrets, key: pinecone } }
+            - name: VOYAGE_API_KEY
+              valueFrom: { secretKeyRef: { name: rag-secrets, key: voyage } }
+            volumeMounts:
+            - { name: repo-cache, mountPath: /repo }
+            resources:
+              requests: { cpu: "2", memory: "4Gi" }
+              limits:   { cpu: "4", memory: "8Gi" }
+          volumes:
+          - name: repo-cache
+            persistentVolumeClaim:
+              claimName: rag-repo-cache
+---
+# Push-webhook handler runs the same image with --mode=incremental
+# triggered by a small Deployment listening to GitHub webhooks.</code></pre>
+
+<h3>Cost &amp; scale snapshot</h3>
+
+<table>
+  <thead><tr><th></th><th>Number</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td>Total chunks indexed</td><td>~400k</td><td>Across go / python / graphql namespaces</td></tr>
+    <tr><td>Cold build cost</td><td>~$30 in embedding fees</td><td>One-time; ~12 min wall-clock</td></tr>
+    <tr><td>Incremental refresh cost</td><td>$0.02–$0.20 per push</td><td>Median PR touches 4 files</td></tr>
+    <tr><td>Pinecone monthly</td><td>&lt; $300 at our QPS</td><td>Serverless, mostly storage + read units</td></tr>
+    <tr><td>Cross-encoder rerank</td><td>~$0.001 per query</td><td>Only on top-32; capped per phase</td></tr>
+    <tr><td>P95 retrieval latency</td><td>&lt; 250 ms</td><td>Dense + sparse + rerank, end-to-end at MCP</td></tr>
+  </tbody>
+</table>
+
+<div class="callout purple">
+  <p><strong>Interview-ready story arc.</strong> Generic LLMs write generic Go. Our generated code had to land cleanly in a 3M-LOC monorepo with strong internal conventions, so we built a code-aware RAG layer: AST-based parsing for clean chunk boundaries, symbol-level chunks with rich metadata, hybrid dense (Pinecone + voyage-code-3) and sparse (OpenSearch BM25) retrieval fused with RRF, a cross-encoder rerank on the top-32, and an incremental push-webhook refresh that keeps freshness lag under 5 minutes. Evaluated against a 250-pair golden set in CI on every change. The outcome: ~80% of migrations land with zero manual edits — the retrieval layer is what closed the gap from "compiles" to "looks like we wrote it."</p>
+</div>
+</section>
+
+<!-- =========================================================== -->
 <section id="finetune">
-<h2><span class="num">6.</span>Fine-Tuned Model for Go Code Generation</h2>
+<h2><span class="num">7.</span>Fine-Tuned Model for Go Code Generation</h2>
 
 <p class="lead">Claude handles reasoning, planning, orchestration. But for generating Go that matches the repo's exact conventions — naming, error handling, package structure, internal library usage — a <strong>LoRA fine-tuned open model</strong> trained on the repo's own code produces more consistent output than prompting alone.</p>
 
@@ -763,7 +1336,7 @@ Output: &lt;Go types, resolvers, and schema registration from your repo&gt;</cod
 
 <div class="diagram">
   <canvas id="loraCanvas" width="840" height="240"></canvas>
-  <div class="caption">Figure 5 — Extract → Format → Train → Evaluate → Publish. Produces a ~50–100MB adapter.</div>
+  <div class="caption">Figure 6 — Extract → Format → Train → Evaluate → Publish. Produces a ~50–100MB adapter.</div>
 </div>
 
 <p>The base model is never modified. The LoRA adapter is a small overlay — you can version adapters and roll back. Retraining is incremental: new code → new pairs → updated adapter.</p>
@@ -854,7 +1427,7 @@ spec:
 
 <!-- =========================================================== -->
 <section id="deployment">
-<h2><span class="num">7.</span>Deployment Model</h2>
+<h2><span class="num">8.</span>Deployment Model</h2>
 
 <p class="lead">All components run in the <code>migration</code> namespace of a single K8s cluster.</p>
 
@@ -880,7 +1453,7 @@ spec:
 
 <!-- =========================================================== -->
 <section id="state">
-<h2><span class="num">8.</span>State &amp; Memory Model</h2>
+<h2><span class="num">9.</span>State &amp; Memory Model</h2>
 
 <p>State lives in two places with distinct roles:</p>
 
@@ -932,7 +1505,7 @@ spec:
 
 <!-- =========================================================== -->
 <section id="decisions">
-<h2><span class="num">9.</span>Key Design Decisions</h2>
+<h2><span class="num">10.</span>Key Design Decisions</h2>
 
 <table>
   <thead><tr><th>Decision</th><th>Rationale</th></tr></thead>
@@ -955,7 +1528,7 @@ spec:
 
 <!-- =========================================================== -->
 <section id="rbac">
-<h2><span class="num">10.</span>Identity, RBAC &amp; Least Privilege</h2>
+<h2><span class="num">11.</span>Identity, RBAC &amp; Least Privilege</h2>
 
 <p class="lead">Each component runs with its own ServiceAccount, scoped to the minimum permissions it needs.</p>
 
@@ -1030,7 +1603,7 @@ codegen-model Pods:
 
 <!-- =========================================================== -->
 <section id="observability">
-<h2><span class="num">11.</span>Observability &amp; Metrics</h2>
+<h2><span class="num">12.</span>Observability &amp; Metrics</h2>
 
 <p class="lead">Three layers of metrics, each serving a different audience: migration quality (engineering leads), infrastructure health (SRE), cost tracking (finance/management).</p>
 
@@ -1097,7 +1670,7 @@ codegen-model Pods:
 
 <!-- =========================================================== -->
 <section id="cost">
-<h2><span class="num">12.</span>Cost Controls</h2>
+<h2><span class="num">13.</span>Cost Controls</h2>
 
 <p>Claude API calls are the largest cost driver. Without guardrails, a single runaway migration or a batch of retries can burn through budget.</p>
 
@@ -1143,7 +1716,7 @@ codegen-model Pods:
 
 <!-- =========================================================== -->
 <section id="hitl">
-<h2><span class="num">13.</span>Human-in-the-Loop Workflow</h2>
+<h2><span class="num">14.</span>Human-in-the-Loop Workflow</h2>
 
 <p class="lead">The system is autonomous but not unsupervised. Developers interact at three points: <strong>triggering</strong>, <strong>reviewing</strong>, and <strong>providing feedback</strong>. Each is designed so the system works without input in the happy path, but humans can intervene at any stage.</p>
 
@@ -1592,7 +2165,86 @@ function drawLoops() {
 }
 
 // ============================================================
-// Figure 5 — LoRA training pipeline
+// Figure 5 — RAG pipeline (Parse → Chunk → Embed → Store → Refresh)
+// ============================================================
+function drawRag() {
+  const c = document.getElementById('ragCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  // Source rail (left): the monorepo
+  roundRect(ctx, 30, 130, 130, 80, 10, '#1e293b', '#94a3b8');
+  label(ctx, 'Monorepo', 95, 156, '#e2e8f0', 14, true);
+  label(ctx, 'Go · Python', 95, 176, '#cbd5e1', 11);
+  label(ctx, 'GraphQL SDL', 95, 192, '#cbd5e1', 11);
+
+  // Five pipeline stages
+  const stages = [
+    { l: '1. Parse',   s: 'tree-sitter\nAST symbols',         c: '#60a5fa', bg: '#1e3a8a' },
+    { l: '2. Chunk',   s: 'symbol-level\n+ rich metadata',    c: '#a78bfa', bg: '#312e81' },
+    { l: '3. Embed',   s: 'voyage-code-3\n+ BM25 sparse',     c: '#fbbf24', bg: '#422006' },
+    { l: '4. Store',   s: 'Pinecone\n(Vector DB)',            c: '#34d399', bg: '#064e3b' },
+    { l: '5. Refresh', s: 'webhook + cron\nP95 < 5 min',      c: '#f87171', bg: '#450a0a' }
+  ];
+  const w = 130, h = 110, gap = 8;
+  const total = stages.length * w + (stages.length - 1) * gap;
+  const startX = 190;
+  const startY = 115;
+  stages.forEach((st, i) => {
+    const x = startX + i * (w + gap);
+    roundRect(ctx, x, startY, w, h, 10, st.bg, st.c);
+    label(ctx, st.l, x + w / 2, startY + 22, '#f1f5f9', 14, true);
+    const lines = st.s.split('\n');
+    lines.forEach((ln, idx) => label(ctx, ln, x + w / 2, startY + 52 + idx * 16, '#cbd5e1', 11));
+    if (i < stages.length - 1) {
+      arrow(ctx, x + w, startY + h / 2, x + w + gap, startY + h / 2, '#94a3b8');
+    }
+  });
+  // Repo → first stage
+  arrow(ctx, 160, 170, 190, startY + h / 2, '#94a3b8');
+
+  // Header
+  label(ctx, 'RAG Indexing Pipeline · K8s CronJob (incremental on push, full nightly)',
+        c.width / 2, 30, '#94a3b8', 13, true);
+  label(ctx, 'Hybrid retrieval: Pinecone (dense) + OpenSearch (BM25), fused via RRF, reranked',
+        c.width / 2, 52, '#64748b', 11);
+
+  // Bottom: MCP reads index
+  roundRect(ctx, 240, 250, 360, 50, 10, '#312e81', '#a78bfa');
+  label(ctx, 'MCP Server · queries the index at agent runtime',
+        420, 268, '#e9d5ff', 13, true);
+  label(ctx, 'search_schemas · find_go_patterns · get_resolver · find_similar_migrations',
+        420, 286, '#c4b5fd', 10);
+
+  // Arrow from Store down to MCP
+  const storeX = startX + 3 * (w + gap) + w / 2;
+  arrow(ctx, storeX, startY + h, storeX, 250, '#a78bfa');
+
+  // Refresh feedback loop arrow (Refresh → Parse, dashed)
+  const refreshX = startX + 4 * (w + gap) + w / 2;
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = '#f87171';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(refreshX, startY);
+  ctx.lineTo(refreshX, 80);
+  ctx.lineTo(startX + w / 2, 80);
+  ctx.lineTo(startX + w / 2, startY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f87171';
+  ctx.beginPath();
+  ctx.moveTo(startX + w / 2, startY);
+  ctx.lineTo(startX + w / 2 - 5, startY - 10);
+  ctx.lineTo(startX + w / 2 + 5, startY - 10);
+  ctx.closePath();
+  ctx.fill();
+  label(ctx, 'incremental refresh on push', (refreshX + startX) / 2, 70, '#fca5a5', 10);
+}
+
+// ============================================================
+// Figure 6 — LoRA training pipeline
 // ============================================================
 function drawLora() {
   const c = document.getElementById('loraCanvas');
@@ -1630,6 +2282,7 @@ function drawAll() {
   drawPod();
   drawFlow();
   drawLoops();
+  drawRag();
   drawLora();
 }
 
